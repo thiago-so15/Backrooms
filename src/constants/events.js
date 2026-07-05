@@ -1,0 +1,18 @@
+/** Global event bus channel names. */
+export const GAME_EVENTS = {
+  PLAYER_DIED: 'player:died',
+  ENTITY_SPAWN: 'entity:spawn',
+  ENTITY_DESPAWN: 'entity:despawn',
+  LEVEL_COMPLETED: 'level:completed',
+  LEVEL_STARTED: 'level:started',
+  OBJECT_PICKED: 'object:picked',
+  OBJECT_DROPPED: 'object:dropped',
+  BATTERY_LOW: 'battery:low',
+  PLAYER_DAMAGE: 'player:damage',
+  GAME_PAUSED: 'game:paused',
+  GAME_RESUMED: 'game:resumed',
+  GAME_STARTED: 'game:started',
+  EXIT_UNLOCKED: 'exit:unlocked',
+  SETTINGS_CHANGED: 'settings:changed',
+  STATE_CHANGED: 'state:changed',
+};

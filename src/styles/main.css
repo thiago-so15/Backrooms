@@ -89,6 +89,17 @@ html, body {
   font-size: 0.95rem;
 }
 
+.intro-device {
+  font-size: 0.8125rem;
+  letter-spacing: 0.12rem;
+  color: #c9c17a;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(138, 131, 84, 0.4);
+  background: rgba(20, 18, 10, 0.5);
+  max-width: 420px;
+}
+
 .instructions {
   margin-bottom: 2rem;
   line-height: 2;
@@ -807,4 +818,88 @@ html.reduce-motion .home-reveal {
 
 html.reduce-motion .home-screen.home-exiting {
   transition-duration: 0.01ms;
+}
+
+/* Toast notifications */
+.toast-stack {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.toast-item {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08rem;
+  color: #c9c17a;
+  background: rgba(10, 9, 4, 0.92);
+  border: 1px solid rgba(138, 131, 84, 0.45);
+  padding: 0.65rem 1.25rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
+.toast-item--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Mobile touch controls */
+.touch-controls {
+  position: fixed;
+  bottom: 1.75rem;
+  left: 1.5rem;
+  z-index: 50;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-dpad {
+  display: grid;
+  grid-template-columns: 3.25rem 3.25rem 3.25rem;
+  grid-template-rows: 3.25rem 3.25rem 3.25rem;
+  gap: 0.35rem;
+}
+
+.touch-btn {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.25rem;
+  min-height: 3.25rem;
+  background: rgba(10, 9, 4, 0.75);
+  border: 1px solid rgba(138, 131, 84, 0.55);
+  color: #8a8354;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.touch-btn--up { grid-column: 2; grid-row: 1; }
+.touch-btn--left { grid-column: 1; grid-row: 2; }
+.touch-btn--right { grid-column: 3; grid-row: 2; }
+.touch-btn--down { grid-column: 2; grid-row: 3; }
+
+.touch-btn--active,
+.touch-btn:active {
+  background: rgba(201, 193, 122, 0.25);
+  border-color: #c9c17a;
+  color: #c9c17a;
+}
+
+.touch-btn:focus-visible {
+  outline: 2px solid #c9c17a;
+  outline-offset: 2px;
 }

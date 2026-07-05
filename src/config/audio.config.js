@@ -1,0 +1,38 @@
+export const AUDIO_CONFIG = {
+  masterVolumeDefault: 70,
+  ambientVolumeDefault: 60,
+  ambientGainScale: 0.15,
+  drone: {
+    frequency1: 55,
+    frequency2: 110.5,
+    type: 'sine',
+  },
+  ambience: {
+    waves: {
+      filterType: 'lowpass',
+      filterFrequency: 480,
+      gain: 0.07,
+      lfoFrequency: 0.16,
+      lfoGain: 0.05,
+    },
+    wind: {
+      filterType: 'bandpass',
+      filterFrequency: 380,
+      filterQ: 0.6,
+      gain: 0.05,
+      lfoFrequency: 0.09,
+      lfoGain: 0.035,
+    },
+    bufferSeconds: 3,
+  },
+  keyPickup: {
+    startFreq: 440,
+    endFreq: 880,
+    gain: 0.15,
+    duration: 0.35,
+  },
+  staticBurst: {
+    duration: 0.4,
+    gain: 0.5,
+  },
+};

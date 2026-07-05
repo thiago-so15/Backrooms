@@ -37,26 +37,34 @@ npm run preview   # previsualizar el build
 | F | Linterna |
 | Esc | Pausa |
 
-## Niveles
-
-1. **Nivel 119 — Average Waterpark** — Parque acuático abandonado con toboganes infinitos.
-2. **Nivel 9 — The Suburbs** — Suburbio infinito de noche, niebla densa y faroles.
-
-En cada nivel tenés que juntar todas las llaves para desbloquear la salida.
-
 ## Stack
 
-- [Three.js](https://threejs.org/) — renderizado 3D
-- [Vite](https://vitejs.dev/) — bundler y dev server
+- **Vite** — bundler y dev server
+- **Three.js** — renderizado 3D (vanilla JS, sin React)
+- **localStorage** — ajustes y progreso (100 % cliente)
 
-## Estructura del proyecto
+## Arquitectura
 
 ```
 src/
-├── core/       # Escena, input, audio
-├── maze/       # Generación y construcción del laberinto
-├── entities/   # Jugador, entidad enemiga, pickups
-├── systems/    # Supervivencia y niveles
-├── ui/         # HUD y pantallas
-└── styles/     # Estilos CSS
+├── app/              # GameManager, bootstrap
+├── config/           # Valores de juego (sin magic numbers)
+├── constants/        # Estados, eventos, storage keys
+├── services/storage/ # StorageService (localStorage)
+├── systems/          # Managers: audio, input, lighting, level, UI…
+├── graphics/maze/    # Generación y construcción del laberinto
+├── entities/         # Player, enemy, pickups
+├── levels/shared/    # Datos de niveles y temas
+├── components/ui/    # HUD, pantallas, modales (HTML, no canvas)
+└── utils/            # Utilidades compartidas
 ```
+
+Los sistemas se comunican vía **EventBus** (`systems/events/EventBus.js`).  
+Las preferencias pasan por **SettingsManager** + **StorageService** — nunca `localStorage` directo desde UI.
+
+Rutas antiguas (`src/core/`, `src/ui/`, etc.) reexportan los módulos nuevos por compatibilidad.
+
+## Niveles
+
+1. **Nivel 119 — Average Waterpark**
+2. **Nivel 9 — The Suburbs**
