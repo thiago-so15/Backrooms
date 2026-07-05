@@ -1,3 +1,5 @@
+import { settingsStore } from './SettingsStore.js';
+
 export class AudioManager {
   constructor() {
     this.ctx = null;
@@ -7,15 +9,31 @@ export class AudioManager {
     this.masterGain = null;
     this.ambienceNodes = null;
     this.initialized = false;
+
+    this._unsubscribe = settingsStore.subscribe((key) => {
+      if (!this.initialized) return;
+      if (key === 'masterVolume' || key === null) this._applyMasterVolume();
+      if (key === 'ambientVolume' || key === null) this._applyAmbientVolume();
+    });
   }
 
   init() {
     if (this.initialized) return;
     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.4;
     this.masterGain.connect(this.ctx.destination);
+    this._applyMasterVolume();
     this.initialized = true;
+  }
+
+  _applyMasterVolume() {
+    if (!this.masterGain) return;
+    this.masterGain.gain.value = settingsStore.getSetting('masterVolume') / 100;
+  }
+
+  _applyAmbientVolume() {
+    if (!this.droneGain) return;
+    this.droneGain.gain.value = (settingsStore.getSetting('ambientVolume') / 100) * 0.15;
   }
 
   resume() {
@@ -30,7 +48,7 @@ export class AudioManager {
     this.stopDrone();
 
     this.droneGain = this.ctx.createGain();
-    this.droneGain.gain.value = 0.08;
+    this._applyAmbientVolume();
     this.droneGain.connect(this.masterGain);
 
     this.droneOsc1 = this.ctx.createOscillator();
@@ -56,6 +74,7 @@ export class AudioManager {
       try { this.droneOsc2.stop(); } catch (_) { /* already stopped */ }
       this.droneOsc2 = null;
     }
+    this.droneGain = null;
     this.stopAmbience();
   }
 
@@ -68,11 +87,6 @@ export class AudioManager {
     return buffer;
   }
 
-  /**
-   * Capa de ambiente por nivel:
-   *  - 'waves': olas del parque acuático (ruido filtrado grave con oleaje lento)
-   *  - 'wind' : viento nocturno del suburbio (ruido en banda media)
-   */
   startAmbience(type) {
     this.init();
     this.resume();
@@ -161,6 +175,7 @@ export class AudioManager {
 
   dispose() {
     this.stopDrone();
+    if (this._unsubscribe) this._unsubscribe();
     if (this.ctx) {
       this.ctx.close();
       this.ctx = null;

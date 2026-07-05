@@ -1,4 +1,6 @@
-const MOUSE_SENSITIVITY = 0.0022;
+import { settingsStore } from './SettingsStore.js';
+
+const BASE_MOUSE_SENSITIVITY = 0.0022;
 
 export class InputManager {
   constructor(canvas) {
@@ -99,11 +101,14 @@ export class InputManager {
     return { x, z };
   }
 
-  applyLook(camera, delta) {
+  applyLook(camera) {
     const mouse = this.consumeMouseDelta();
+    const sensitivity = BASE_MOUSE_SENSITIVITY * settingsStore.getSetting('mouseSensitivity');
+    const invertY = settingsStore.getSetting('invertY') ? -1 : 1;
+
     camera.rotation.order = 'YXZ';
-    camera.rotation.y -= mouse.x * MOUSE_SENSITIVITY;
-    camera.rotation.x -= mouse.y * MOUSE_SENSITIVITY;
+    camera.rotation.y -= mouse.x * sensitivity;
+    camera.rotation.x -= mouse.y * sensitivity * invertY;
     camera.rotation.x = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, camera.rotation.x));
   }
 }

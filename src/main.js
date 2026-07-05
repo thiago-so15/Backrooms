@@ -11,7 +11,7 @@ import { HUD } from './ui/HUD.js';
 import { Screens } from './ui/Screens.js';
 
 const STATE = {
-  MENU: 'menu',
+  HOME: 'home',
   INTRO: 'intro',
   PLAYING: 'playing',
   PAUSED: 'paused',
@@ -23,6 +23,7 @@ const STATE = {
 class Game {
   constructor() {
     this.canvas = document.getElementById('game-canvas');
+    this.gameContainer = document.getElementById('game-container');
     this.uiLayer = document.getElementById('ui-layer');
 
     this.sceneSetup = new SceneSetup(this.canvas);
@@ -31,14 +32,14 @@ class Game {
     this.levelManager = new LevelManager();
     this.survival = new SurvivalSystem();
     this.hud = new HUD(this.uiLayer);
-    this.screens = new Screens(this.uiLayer);
+    this.screens = new Screens(this.uiLayer, this.gameContainer);
 
     this.mazeBuilder = null;
     this.player = null;
     this.entity = null;
     this.pickup = null;
 
-    this.state = STATE.MENU;
+    this.state = STATE.HOME;
     this.exitUnlocked = false;
     this.rafId = null;
 
@@ -60,9 +61,12 @@ class Game {
   }
 
   _bindScreens() {
-    this.screens.onStart = () => {
+    this.screens.onEnterClick = () => {
       this.audio.init();
       this.audio.resume();
+    };
+
+    this.screens.onEnter = () => {
       this.levelManager.reset();
       this._startLevel(0);
     };
@@ -96,6 +100,7 @@ class Game {
 
   _bindInput() {
     this.input.onEscape = () => {
+      if (this.screens.settingsPanel.isOpen) return;
       if (this.state === STATE.PLAYING) {
         this.state = STATE.PAUSED;
         this.input.releasePointerLock();
@@ -187,7 +192,7 @@ class Game {
   }
 
   _updatePlaying(dt) {
-    this.input.applyLook(this.camera, dt);
+    this.input.applyLook(this.camera);
 
     if (this.input.isFlashlightToggle()) {
       this.player.toggleFlashlight(this.survival.battery);

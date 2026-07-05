@@ -1,28 +1,30 @@
+import { HomeScreen } from './HomeScreen.js';
+import { SettingsPanel } from './SettingsPanel.js';
+
 export class Screens {
-  constructor(container) {
+  constructor(container, fullscreenTarget) {
     this.container = container;
-    this.onStart = null;
+    this.onEnterClick = null;
+    this.onEnter = null;
     this.onResume = null;
     this.onRetry = null;
     this.onNextLevel = null;
+
+    this.settingsPanel = new SettingsPanel(container, fullscreenTarget);
+
     this._build();
+
+    this.home = new HomeScreen(container, this.settingsPanel);
+    this.home.onEnterClick = () => {
+      if (this.onEnterClick) this.onEnterClick();
+    };
+    this.home.onEnter = () => {
+      if (this.onEnter) this.onEnter();
+    };
   }
 
   _build() {
-    this.container.innerHTML = `
-      <div id="screen-menu" class="screen active">
-        <h1 class="title-flicker">THE BACKROOMS</h1>
-        <p class="subtitle">Hiciste no-clip fuera de la realidad. Ahora estás acá.</p>
-        <div class="instructions">
-          <p><strong>WASD</strong> — Moverse &nbsp; <strong>Shift</strong> — Correr</p>
-          <p><strong>Mouse</strong> — Mirar &nbsp; <strong>F</strong> — Linterna</p>
-          <p><strong>Esc</strong> — Pausa</p>
-          <p class="hint">Juntá todas las llaves de cada nivel para abrir la salida.</p>
-          <p class="hint">Nivel 119: el parque acuático. Nivel 9: los suburbios.</p>
-        </div>
-        <button id="btn-start" class="btn">HACER NO-CLIP</button>
-      </div>
-
+    this.container.insertAdjacentHTML('beforeend', `
       <div id="screen-intro" class="screen">
         <h2 id="intro-title"></h2>
         <p id="intro-subtitle" class="subtitle"></p>
@@ -33,6 +35,7 @@ export class Screens {
       <div id="screen-pause" class="screen">
         <h2>PAUSA</h2>
         <button id="btn-resume" class="btn">CONTINUAR</button>
+        <button id="btn-settings-pause" class="btn btn-secondary">AJUSTES</button>
         <button id="btn-retry-pause" class="btn btn-secondary">REINTENTAR</button>
       </div>
 
@@ -53,10 +56,9 @@ export class Screens {
         <p class="intro-text">Cruzaste el parque acuático y los suburbios. La puerta se cierra detrás tuyo. Más abajo, algo espera... pero eso es otra historia.</p>
         <button id="btn-victory-retry" class="btn">VOLVER A EMPEZAR</button>
       </div>
-    `;
+    `);
 
     this.screens = {
-      menu: this.container.querySelector('#screen-menu'),
       intro: this.container.querySelector('#screen-intro'),
       pause: this.container.querySelector('#screen-pause'),
       gameover: this.container.querySelector('#screen-gameover'),
@@ -64,14 +66,14 @@ export class Screens {
       victory: this.container.querySelector('#screen-victory'),
     };
 
-    this.container.querySelector('#btn-start').addEventListener('click', () => {
-      if (this.onStart) this.onStart();
-    });
     this.container.querySelector('#btn-intro').addEventListener('click', () => {
       if (this.onNextLevel) this.onNextLevel();
     });
     this.container.querySelector('#btn-resume').addEventListener('click', () => {
       if (this.onResume) this.onResume();
+    });
+    this.container.querySelector('#btn-settings-pause').addEventListener('click', () => {
+      this.settingsPanel.open();
     });
     this.container.querySelector('#btn-retry-pause').addEventListener('click', () => {
       if (this.onRetry) this.onRetry();
