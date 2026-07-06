@@ -855,14 +855,45 @@ html.reduce-motion .home-screen.home-exiting {
 /* Mobile touch controls */
 .touch-controls {
   position: fixed;
-  bottom: 1.75rem;
-  left: 1.5rem;
+  inset: 0;
   z-index: 50;
-  pointer-events: auto;
+  pointer-events: none;
   touch-action: none;
 }
 
+.touch-look-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 58%;
+  height: 100%;
+  pointer-events: auto;
+  touch-action: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5rem;
+}
+
+.touch-look-hint {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1rem;
+  color: rgba(138, 131, 84, 0.55);
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 300ms ease;
+}
+
+.touch-look-zone--active .touch-look-hint {
+  opacity: 0;
+}
+
 .touch-dpad {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 1.5rem;
+  pointer-events: auto;
   display: grid;
   grid-template-columns: 3.25rem 3.25rem 3.25rem;
   grid-template-rows: 3.25rem 3.25rem 3.25rem;

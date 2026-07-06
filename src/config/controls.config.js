@@ -3,6 +3,7 @@ export const CONTROLS_CONFIG = {
   sensitivityMin: 0.5,
   sensitivityMax: 2.5,
   sensitivityDefault: 1.0,
+  touchLookScale: 1.0,
   movementKeys: ['KeyW', 'KeyA', 'KeyS', 'KeyD'],
   sprintKeys: ['ShiftLeft', 'ShiftRight'],
   flashlightKey: 'KeyF',

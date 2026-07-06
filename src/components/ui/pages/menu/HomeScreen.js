@@ -20,7 +20,7 @@ export class HomeScreen {
     const finePointer = hasFinePointer();
     const compatWarning = finePointer
       ? ''
-      : '<p class="home-compat-warning home-reveal home-reveal--compat" role="note">Modo celular detectado — usá las flechas en pantalla para moverte</p>';
+      : '<p class="home-compat-warning home-reveal home-reveal--compat" role="note">Modo celular — flechas para moverte, arrastrá a la derecha para mirar</p>';
 
     const el = document.createElement('div');
     el.id = 'screen-home';

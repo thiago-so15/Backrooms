@@ -83,6 +83,13 @@ export class InputManager {
     return delta;
   }
 
+  /** Touch drag look — accumulates pixel delta like mouse movement. */
+  addLookDelta(dx, dy) {
+    const scale = this.isMobile ? CONTROLS_CONFIG.touchLookScale : 1;
+    this.mouseDelta.x += dx * scale;
+    this.mouseDelta.y += dy * scale;
+  }
+
   isMoving() {
     return (
       CONTROLS_CONFIG.movementKeys.some((key) => this.keys[key]) ||

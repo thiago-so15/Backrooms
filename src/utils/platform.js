@@ -31,7 +31,7 @@ export function getDeviceLabel(type = getDeviceType()) {
 /** Hint text for intro screen per device. */
 export function getDeviceHint(type = getDeviceType()) {
   if (type === 'mobile') {
-    return 'Usá las flechas en pantalla para moverte.';
+    return 'Usá las flechas para moverte. Arrastrá el dedo en la derecha de la pantalla para mirar alrededor.';
   }
   return 'WASD para moverte, mouse para mirar.';
 }
