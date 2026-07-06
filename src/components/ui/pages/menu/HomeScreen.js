@@ -1,13 +1,15 @@
 import { hasFinePointer } from '../../../../utils/platform.js';
 import { UI_CONFIG } from '../../../../config/ui.config.js';
+import { currencyManager } from '../../../../systems/economy/CurrencyManager.js';
 
 /**
  * Home / main menu overlay shown once per session.
  */
 export class HomeScreen {
-  constructor(container, settingsPanel) {
+  constructor(container, settingsPanel, shopPanel) {
     this.container = container;
     this.settingsPanel = settingsPanel;
+    this.shopPanel = shopPanel;
     this.element = null;
     this.howToOverlay = null;
     this.onEnterClick = null;
@@ -35,7 +37,9 @@ export class HomeScreen {
         </div>
         ${compatWarning}
         <div class="home-actions home-reveal home-reveal--actions">
+          <p class="home-coins home-reveal home-reveal--coins">Monedas: <span id="home-coin-balance">0</span></p>
           <button type="button" id="btn-enter" class="home-btn home-btn--primary">Entrar</button>
+          <button type="button" id="btn-shop" class="home-btn home-btn--secondary">Tienda</button>
           <button type="button" id="btn-how-to-play" class="home-btn home-btn--secondary">Cómo jugar</button>
         </div>
       </div>
@@ -46,10 +50,21 @@ export class HomeScreen {
     this._buildHowToModal();
 
     el.querySelector('#btn-enter').addEventListener('click', () => this._handleEnter());
+    el.querySelector('#btn-shop').addEventListener('click', () => this.shopPanel.open());
     el.querySelector('#btn-how-to-play').addEventListener('click', () => this._openHowTo());
     el.querySelector('.home-settings-btn').addEventListener('click', () => {
       this.settingsPanel.open();
     });
+
+    this._coinBalanceEl = el.querySelector('#home-coin-balance');
+    this._updateCoinBalance();
+    currencyManager.subscribe(() => this._updateCoinBalance());
+  }
+
+  _updateCoinBalance() {
+    if (this._coinBalanceEl) {
+      this._coinBalanceEl.textContent = String(currencyManager.getBalance());
+    }
   }
 
   _buildHowToModal() {
@@ -70,7 +85,7 @@ export class HomeScreen {
             <div class="howto-row"><dt>F</dt><dd>Encender / apagar la linterna</dd></div>
             <div class="howto-row"><dt>Esc</dt><dd>Pausar</dd></div>
           </dl>
-          <p class="howto-objective">Encontrá todas las llaves de cada nivel y llegá a la salida. Cuidá tu cordura y la batería de tu linterna.</p>
+          <p class="howto-objective">Encontrá todas las llaves de cada nivel y llegá a la salida. Juntá monedas en el mapa y gastalas en la Tienda para mejorar tu linterna y más. Cuidá tu cordura y la batería.</p>
         </div>
       </div>
     `;

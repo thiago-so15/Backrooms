@@ -13,6 +13,9 @@ import { MazeBuilder } from '../graphics/maze/MazeBuilder.js';
 import { Player } from '../entities/player/Player.js';
 import { Entity } from '../entities/enemy/Entity.js';
 import { Pickup } from '../entities/items/Pickup.js';
+import { CoinPickup } from '../entities/items/CoinPickup.js';
+import { currencyManager } from '../systems/economy/CurrencyManager.js';
+import { shopManager } from '../systems/economy/ShopManager.js';
 import { getDeviceType, getDeviceLabel, getDeviceHint, isMobileDevice } from '../utils/platform.js';
 
 /**
@@ -37,6 +40,7 @@ export class GameManager {
     this.player = null;
     this.entity = null;
     this.pickup = null;
+    this.coinPickup = null;
 
     this.scene = null;
     this.camera = null;
@@ -59,6 +63,7 @@ export class GameManager {
     this.player = new Player(camera, scene);
     this.entity = new Entity(scene);
     this.pickup = new Pickup(scene);
+    this.coinPickup = new CoinPickup(scene);
     this._loop();
   }
 
@@ -117,7 +122,7 @@ export class GameManager {
 
   _bindInput() {
     this.input.onEscape = () => {
-      if (this.ui.settingsPanel.isOpen) return;
+      if (this.ui.settingsPanel.isOpen || this.ui.shopPanel.isOpen) return;
       if (this.state === GAME_STATE.PLAYING) {
         this._setState(GAME_STATE.PAUSED);
         this._hidePlayControls();
@@ -142,6 +147,15 @@ export class GameManager {
     const start = this.levelManager.getPlayerStart();
     this.player.reset(start.x, start.z);
     this.pickup.spawn(mazeData, config.keyCount, start.x, start.z);
+    this.coinPickup.spawn(
+      mazeData,
+      config.coinCount ?? 5,
+      start.x,
+      start.z,
+      this.pickup.getOccupiedCells()
+    );
+
+    this._applyShopModifiers();
 
     const entityStart = this.levelManager.getEntityStart(config);
     if (entityStart) {
@@ -158,6 +172,11 @@ export class GameManager {
     );
     this.ui.hud.hide();
     this.ui.touchControls.hide();
+  }
+
+  _applyShopModifiers() {
+    const mods = shopManager.getModifiers();
+    this.player.speedMultiplier = mods.speedMult;
   }
 
   _showPlayControls() {
@@ -178,6 +197,8 @@ export class GameManager {
     this.ui.screens.hideAll();
     this.ui.hud.show();
     this.ui.hud.reset();
+    this._applyShopModifiers();
+    this.survival.reset();
     this.audio.startDrone();
     this.audio.startAmbience(this.currentTheme?.ambience ?? null);
     this._showPlayControls();
@@ -188,6 +209,7 @@ export class GameManager {
     this.mazeBuilder.clear();
     this.lighting.clearLights();
     this.pickup.clear();
+    this.coinPickup.clear();
     this.entity.dispose();
     this.exitUnlocked = false;
   }
@@ -264,6 +286,13 @@ export class GameManager {
       this.audio.playKeyPickup();
     }
 
+    const coinsCollected = this.coinPickup.update(dt, playerPos);
+    if (coinsCollected !== null) {
+      currencyManager.addCoins(coinsCollected);
+      this.audio.playKeyPickup();
+      this.ui.hud.showMessage(`+${coinsCollected} moneda${coinsCollected > 1 ? 's' : ''}`);
+    }
+
     if (!this.exitUnlocked && this.pickup.allCollected()) {
       this.exitUnlocked = true;
       this.mazeBuilder.unlockExit();
@@ -281,8 +310,11 @@ export class GameManager {
       levelName: config.name,
       keysCollected: this.pickup.collected,
       keysTotal: config.keyCount,
+      coins: currencyManager.getBalance(),
       sanity: survivalState.sanity,
       battery: survivalState.battery,
+      maxSanity: survivalState.maxSanity,
+      maxBattery: survivalState.maxBattery,
       entityDistance: entityResult.distance,
       exitUnlocked: this.exitUnlocked,
       dt,
@@ -308,6 +340,7 @@ export class GameManager {
     this.mazeBuilder.dispose();
     this.entity.dispose();
     this.pickup.dispose();
+    this.coinPickup.dispose();
     this.audio.dispose();
     this.lighting.dispose();
     this.ui.dispose();

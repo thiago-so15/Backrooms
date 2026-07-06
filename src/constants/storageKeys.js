@@ -4,6 +4,7 @@ export const STORAGE_KEYS = {
   COMPLETED: 'backrooms_completed',
   COMPLETED_AT: 'backrooms_completed_at',
   SAVE_DATA: 'backrooms_save',
+  ECONOMY: 'backrooms_economy',
   META: 'backrooms_meta',
 };
 

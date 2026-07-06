@@ -423,6 +423,17 @@ html, body {
   animation-delay: 0.68s;
 }
 
+.home-coins {
+  font-size: 0.8125rem;
+  letter-spacing: 0.12rem;
+  color: #e8c84a;
+  margin-bottom: 0.25rem;
+}
+
+.home-coins span {
+  color: #c9c17a;
+}
+
 @keyframes home-fade-in {
   from {
     opacity: 0;
@@ -933,4 +944,118 @@ html.reduce-motion .home-screen.home-exiting {
 .touch-btn:focus-visible {
   outline: 2px solid #c9c17a;
   outline-offset: 2px;
+}
+
+/* Shop panel */
+.shop-panel {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: rgba(10, 9, 4, 0.96);
+  border: 1px solid rgba(138, 131, 84, 0.4);
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.shop-balance {
+  font-size: 0.9rem;
+  letter-spacing: 0.1rem;
+  color: #e8c84a;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.shop-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(138, 131, 84, 0.3);
+  background: rgba(20, 18, 10, 0.45);
+}
+
+.shop-item--owned {
+  opacity: 0.65;
+  border-color: rgba(201, 193, 122, 0.35);
+}
+
+.shop-item-name {
+  font-size: 0.85rem;
+  font-weight: normal;
+  letter-spacing: 0.08rem;
+  color: #c9c17a;
+  margin-bottom: 0.25rem;
+}
+
+.shop-item-desc {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: #8a8354;
+}
+
+.shop-item-req {
+  font-size: 0.7rem;
+  color: #8a8354;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.shop-item-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.shop-item-price {
+  font-size: 0.8rem;
+  color: #e8c84a;
+  letter-spacing: 0.05rem;
+}
+
+.shop-buy-btn {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  min-height: 36px;
+  background: transparent;
+  border: 1px solid #8a8354;
+  color: #c9c17a;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.shop-buy-btn:hover:not(:disabled) {
+  background: #c9c17a;
+  color: #050400;
+}
+
+.shop-buy-btn--owned,
+.shop-buy-btn--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shop-buy-btn--expensive:not(:disabled) {
+  border-color: rgba(138, 131, 84, 0.35);
+  color: #8a8354;
+}
+
+.shop-buy-btn:focus-visible {
+  outline: 2px solid #c9c17a;
+  outline-offset: 2px;
+}
+
+#hud-coins {
+  color: #e8c84a;
+  font-size: 0.8rem;
 }

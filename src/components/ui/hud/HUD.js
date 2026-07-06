@@ -20,6 +20,7 @@ export class HUD {
         <div class="hud-top-left">
           <div id="hud-level">NIVEL 0</div>
           <div id="hud-keys">Llaves: 0 / 0</div>
+          <div id="hud-coins">Monedas: 0</div>
           <div id="hud-objective">Encuentra las llaves</div>
         </div>
         <div class="hud-top-right">
@@ -38,6 +39,7 @@ export class HUD {
     this.hud = this.container.querySelector('#hud');
     this.levelEl = this.container.querySelector('#hud-level');
     this.keysEl = this.container.querySelector('#hud-keys');
+    this.coinsEl = this.container.querySelector('#hud-coins');
     this.objectiveEl = this.container.querySelector('#hud-objective');
     this.sanityBar = this.container.querySelector('#bar-sanity');
     this.batteryBar = this.container.querySelector('#bar-battery');
@@ -59,20 +61,24 @@ export class HUD {
       levelName,
       keysCollected,
       keysTotal,
+      coins,
       sanity,
       battery,
+      maxSanity,
+      maxBattery,
       entityDistance,
       exitUnlocked,
     } = state;
 
     this.levelEl.textContent = levelName;
     this.keysEl.textContent = `Llaves: ${keysCollected} / ${keysTotal}`;
+    this.coinsEl.textContent = `Monedas: ${coins ?? 0}`;
     this.objectiveEl.textContent = exitUnlocked
       ? 'Dirígete a la salida'
       : 'Encuentra las llaves';
 
-    this._setBar(this.sanityBar, sanity);
-    this._setBar(this.batteryBar, battery);
+    this._setBar(this.sanityBar, sanity, maxSanity ?? PLAYER_CONFIG.survival.maxStat);
+    this._setBar(this.batteryBar, battery, maxBattery ?? PLAYER_CONFIG.survival.maxStat);
 
     const hudCfg = UI_CONFIG.hud;
     const entityRadius = hudCfg.entityProximityRadius;
@@ -106,8 +112,8 @@ export class HUD {
     }
   }
 
-  _setBar(el, value) {
-    const pct = Math.max(0, Math.min(PLAYER_CONFIG.survival.maxStat, value));
+  _setBar(el, current, max) {
+    const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
     el.style.width = `${pct}%`;
     const colors = UI_CONFIG.hud.barColors;
     if (pct > 50) {

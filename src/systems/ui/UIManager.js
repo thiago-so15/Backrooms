@@ -20,6 +20,10 @@ export class UIManager {
     return this.screens.settingsPanel;
   }
 
+  get shopPanel() {
+    return this.screens.shopPanel;
+  }
+
   showToast(message, duration) {
     this.toasts.show(message, duration);
   }

@@ -31,6 +31,7 @@ export class Player {
 
     this.flashlightOn = true;
     this.flashlight.visible = true;
+    this.speedMultiplier = 1;
   }
 
   reset(x, z) {
@@ -62,7 +63,7 @@ export class Player {
   update(input, dt, wallBoxes) {
     const move = input.getMovementVector();
     const sprinting = input.isSprinting();
-    const speed = baseSpeed * (sprinting ? sprintMultiplier : 1);
+    const speed = baseSpeed * (sprinting ? sprintMultiplier : 1) * this.speedMultiplier;
 
     const forward = new THREE.Vector3();
     this.camera.getWorldDirection(forward);

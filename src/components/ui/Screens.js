@@ -1,5 +1,6 @@
 import { HomeScreen } from './pages/menu/HomeScreen.js';
 import { SettingsPanel } from './dialogs/SettingsPanel.js';
+import { ShopPanel } from './dialogs/ShopPanel.js';
 
 export class Screens {
   constructor(container, fullscreenTarget) {
@@ -11,10 +12,11 @@ export class Screens {
     this.onNextLevel = null;
 
     this.settingsPanel = new SettingsPanel(container, fullscreenTarget);
+    this.shopPanel = new ShopPanel(container);
 
     this._build();
 
-    this.home = new HomeScreen(container, this.settingsPanel);
+    this.home = new HomeScreen(container, this.settingsPanel, this.shopPanel);
     this.home.onEnterClick = () => {
       if (this.onEnterClick) this.onEnterClick();
     };
@@ -36,6 +38,7 @@ export class Screens {
       <div id="screen-pause" class="screen">
         <h2>PAUSA</h2>
         <button id="btn-resume" class="btn">CONTINUAR</button>
+        <button id="btn-shop-pause" class="btn btn-secondary">TIENDA</button>
         <button id="btn-settings-pause" class="btn btn-secondary">AJUSTES</button>
         <button id="btn-retry-pause" class="btn btn-secondary">REINTENTAR</button>
       </div>
@@ -75,6 +78,9 @@ export class Screens {
     });
     this.container.querySelector('#btn-settings-pause').addEventListener('click', () => {
       this.settingsPanel.open();
+    });
+    this.container.querySelector('#btn-shop-pause').addEventListener('click', () => {
+      this.shopPanel.open();
     });
     this.container.querySelector('#btn-retry-pause').addEventListener('click', () => {
       if (this.onRetry) this.onRetry();
