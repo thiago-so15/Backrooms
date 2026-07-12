@@ -187,6 +187,61 @@ function createFacadeTexture({ base, grout, tint }) {
   return toTexture(canvas);
 }
 
+/** Papel tapiz de pasillo de apartamento: rayas verticales descoloridas. */
+function createWallpaperTexture({ base, pattern, tint }) {
+  const w = 256;
+  const h = 256;
+  const { canvas, ctx } = makeCanvas(w, h);
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, w, h);
+  addNoise(ctx, w, h, 18);
+
+  const stripeW = 18;
+  for (let x = 0; x < w; x += stripeW * 2) {
+    ctx.fillStyle = pattern || '#b5a468';
+    ctx.globalAlpha = 0.35;
+    ctx.fillRect(x, 0, stripeW, h);
+  }
+  ctx.globalAlpha = 1;
+
+  // zócalo / baseboard
+  ctx.fillStyle = 'rgba(60,50,30,0.55)';
+  ctx.fillRect(0, h - 28, w, 28);
+  ctx.strokeStyle = 'rgba(40,34,20,0.7)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, h - 28);
+  ctx.lineTo(w, h - 28);
+  ctx.stroke();
+
+  addGrime(ctx, w, h, 50, 0.16);
+  if (tint) tintOverlay(ctx, w, h, tint, 0.1);
+  return toTexture(canvas);
+}
+
+/** Alfombra de hotel/apartamento: trama densa y manchas. */
+function createCarpetTexture({ base, pattern }) {
+  const w = 256;
+  const h = 256;
+  const { canvas, ctx } = makeCanvas(w, h);
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, w, h);
+
+  for (let y = 0; y < h; y += 4) {
+    for (let x = 0; x < w; x += 4) {
+      if ((x + y) % 8 === 0) {
+        ctx.fillStyle = pattern || '#4a3c28';
+        ctx.globalAlpha = 0.45;
+        ctx.fillRect(x, y, 3, 3);
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+  addNoise(ctx, w, h, 28);
+  addGrime(ctx, w, h, 70, 0.22);
+  return toTexture(canvas);
+}
+
 function createNightTexture({ base }) {
   const w = 128;
   const h = 128;
@@ -294,6 +349,7 @@ export class MazeBuilder {
 
     if (theme.props === 'slides') this._buildWaterparkProps(mazeData);
     else if (theme.props === 'suburb') this._buildSuburbProps(mazeData);
+    else if (theme.props === 'apartments') this._buildApartmentProps(mazeData);
 
     this._buildExit(mazeData, theme);
     return { worldW, worldH };
@@ -308,12 +364,14 @@ export class MazeBuilder {
 
   _makeWallTexture(cfg) {
     if (cfg.type === 'facade') return createFacadeTexture(cfg);
+    if (cfg.type === 'wallpaper') return createWallpaperTexture(cfg);
     return createTileTexture(cfg);
   }
 
   _makeFloorTexture(cfg) {
     if (cfg.type === 'checker') return createCheckerTexture(cfg);
     if (cfg.type === 'asphalt') return createAsphaltTexture(cfg);
+    if (cfg.type === 'carpet') return createCarpetTexture(cfg);
     return createTileTexture(cfg);
   }
 
@@ -408,6 +466,64 @@ export class MazeBuilder {
         );
         box.position.set(post.position.x, 0.95, post.position.z);
         this.group.add(box);
+      }
+    }
+  }
+
+  /* -------------------- props: apartamentos (Level 188) ----------------- */
+
+  _buildApartmentProps(mazeData) {
+    const { width, height } = mazeData;
+    const doorMat = new THREE.MeshStandardMaterial({ color: 0x3a3228, roughness: 0.85 });
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x6a5e48, roughness: 0.8 });
+    const plantMat = new THREE.MeshStandardMaterial({ color: 0x2a4a28, roughness: 0.9 });
+    const potMat = new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.7 });
+    const doorGeo = new THREE.BoxGeometry(0.9, 2.1, 0.08);
+    const frameGeo = new THREE.BoxGeometry(1.1, 2.3, 0.1);
+    const potGeo = new THREE.CylinderGeometry(0.18, 0.14, 0.28, 8);
+    const foliageGeo = new THREE.SphereGeometry(0.28, 8, 8);
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (x === 0 && y === 0) continue;
+        if (Math.random() > 0.18) continue;
+        const pos = MazeGenerator.cellToWorld(x, y, CELL_SIZE);
+        const side = Math.random() > 0.5 ? 1 : -1;
+        const ox = side * (CELL_SIZE * 0.35);
+        const oz = (Math.random() - 0.5) * 1.2;
+
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        frame.position.set(pos.x + ox, 1.15, pos.z + oz);
+        frame.rotation.y = side > 0 ? Math.PI / 2 : -Math.PI / 2;
+        this.group.add(frame);
+
+        const door = new THREE.Mesh(doorGeo, doorMat);
+        door.position.set(pos.x + ox * 0.98, 1.1, pos.z + oz);
+        door.rotation.y = frame.rotation.y;
+        this.group.add(door);
+
+        // número de puerta (placa)
+        const plate = new THREE.Mesh(
+          new THREE.BoxGeometry(0.2, 0.12, 0.02),
+          new THREE.MeshStandardMaterial({
+            color: 0xc9c17a,
+            emissive: 0x8a8354,
+            emissiveIntensity: 0.2,
+            roughness: 0.5,
+          })
+        );
+        plate.position.set(pos.x + ox * 0.95, 1.85, pos.z + oz);
+        plate.rotation.y = frame.rotation.y;
+        this.group.add(plate);
+
+        if (Math.random() < 0.35) {
+          const pot = new THREE.Mesh(potGeo, potMat);
+          pot.position.set(pos.x + ox * 0.55, 0.14, pos.z + oz + side * 0.45);
+          this.group.add(pot);
+          const plant = new THREE.Mesh(foliageGeo, plantMat);
+          plant.position.set(pot.position.x, 0.42, pot.position.z);
+          this.group.add(plant);
+        }
       }
     }
   }

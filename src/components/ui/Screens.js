@@ -1,15 +1,18 @@
 import { HomeScreen } from './pages/menu/HomeScreen.js';
 import { SettingsPanel } from './dialogs/SettingsPanel.js';
 import { ShopPanel } from './dialogs/ShopPanel.js';
+import { LEVELS } from '../../levels/shared/levels.js';
 
 export class Screens {
   constructor(container, fullscreenTarget) {
     this.container = container;
     this.onEnterClick = null;
     this.onEnter = null;
+    this.onContinue = null;
     this.onResume = null;
     this.onRetry = null;
     this.onNextLevel = null;
+    this.onGoHome = null;
 
     this.settingsPanel = new SettingsPanel(container, fullscreenTarget);
     this.shopPanel = new ShopPanel(container);
@@ -20,8 +23,11 @@ export class Screens {
     this.home.onEnterClick = () => {
       if (this.onEnterClick) this.onEnterClick();
     };
-    this.home.onEnter = () => {
-      if (this.onEnter) this.onEnter();
+    this.home.onEnter = (levelIndex) => {
+      if (this.onEnter) this.onEnter(levelIndex);
+    };
+    this.home.onContinue = (levelIndex) => {
+      if (this.onContinue) this.onContinue(levelIndex);
     };
   }
 
@@ -52,13 +58,15 @@ export class Screens {
       <div id="screen-victory-level" class="screen">
         <h2>NIVEL COMPLETADO</h2>
         <p id="victory-level-text"></p>
-        <button id="btn-next-level" class="btn">SIGUIENTE NIVEL</button>
+        <button id="btn-next-level" class="btn">SEGUIR NIVEL</button>
+        <button id="btn-victory-home" class="btn btn-secondary">INICIO</button>
       </div>
 
       <div id="screen-victory" class="screen">
         <h1 class="title-flicker">SEGUÍS DESCENDIENDO</h1>
-        <p class="intro-text">Cruzaste el parque acuático y los suburbios. La puerta se cierra detrás tuyo. Más abajo, algo espera... pero eso es otra historia.</p>
+        <p class="intro-text">Cruzaste el parque acuático, los suburbios y el complejo de apartamentos. La puerta del ascensor se cierra detrás tuyo. Más abajo, algo espera... pero eso es otra historia.</p>
         <button id="btn-victory-retry" class="btn">VOLVER A EMPEZAR</button>
+        <button id="btn-victory-final-home" class="btn btn-secondary">INICIO</button>
       </div>
     `);
 
@@ -91,8 +99,14 @@ export class Screens {
     this.container.querySelector('#btn-next-level').addEventListener('click', () => {
       if (this.onNextLevel) this.onNextLevel();
     });
+    this.container.querySelector('#btn-victory-home').addEventListener('click', () => {
+      if (this.onGoHome) this.onGoHome();
+    });
     this.container.querySelector('#btn-victory-retry').addEventListener('click', () => {
       if (this.onRetry) this.onRetry();
+    });
+    this.container.querySelector('#btn-victory-final-home').addEventListener('click', () => {
+      if (this.onGoHome) this.onGoHome({ fromFinalVictory: true });
     });
   }
 
@@ -116,9 +130,17 @@ export class Screens {
     this.show('gameover');
   }
 
-  showLevelComplete(levelName) {
+  showLevelComplete(levelName, nextLevelIndex) {
+    const nextNumber = nextLevelIndex + 1;
+    const nextConfig = LEVELS[nextLevelIndex];
+    const nextLabel = nextConfig ? nextConfig.name : `NIVEL ${nextNumber}`;
+
     this.container.querySelector('#victory-level-text').textContent =
       `${levelName} completado. El pasillo siguiente te espera.`;
+
+    const nextBtn = this.container.querySelector('#btn-next-level');
+    nextBtn.textContent = `SEGUIR ${nextLabel}`;
+
     this.show('victoryLevel');
   }
 
@@ -126,5 +148,11 @@ export class Screens {
     for (const el of Object.values(this.screens)) {
       el.classList.remove('active');
     }
+  }
+
+  showHome() {
+    this.hideAll();
+    this.home.refreshProgress();
+    this.home.show();
   }
 }

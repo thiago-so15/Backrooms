@@ -1,9 +1,11 @@
 import { hasFinePointer } from '../../../../utils/platform.js';
 import { UI_CONFIG } from '../../../../config/ui.config.js';
 import { currencyManager } from '../../../../systems/economy/CurrencyManager.js';
+import { saveManager } from '../../../../systems/save/SaveManager.js';
+import { LEVELS } from '../../../../levels/shared/levels.js';
 
 /**
- * Home / main menu overlay shown once per session.
+ * Home / main menu overlay.
  */
 export class HomeScreen {
   constructor(container, settingsPanel, shopPanel) {
@@ -14,6 +16,7 @@ export class HomeScreen {
     this.howToOverlay = null;
     this.onEnterClick = null;
     this.onEnter = null;
+    this.onContinue = null;
     this._entering = false;
     this._build();
   }
@@ -38,7 +41,7 @@ export class HomeScreen {
         ${compatWarning}
         <div class="home-actions home-reveal home-reveal--actions">
           <p class="home-coins home-reveal home-reveal--coins">Monedas: <span id="home-coin-balance">0</span></p>
-          <button type="button" id="btn-enter" class="home-btn home-btn--primary">Entrar</button>
+          <div id="home-play-actions" class="home-play-actions"></div>
           <button type="button" id="btn-shop" class="home-btn home-btn--secondary">Tienda</button>
           <button type="button" id="btn-how-to-play" class="home-btn home-btn--secondary">Cómo jugar</button>
         </div>
@@ -47,9 +50,9 @@ export class HomeScreen {
 
     this.container.appendChild(el);
     this.element = el;
+    this._playActions = el.querySelector('#home-play-actions');
     this._buildHowToModal();
 
-    el.querySelector('#btn-enter').addEventListener('click', () => this._handleEnter());
     el.querySelector('#btn-shop').addEventListener('click', () => this.shopPanel.open());
     el.querySelector('#btn-how-to-play').addEventListener('click', () => this._openHowTo());
     el.querySelector('.home-settings-btn').addEventListener('click', () => {
@@ -59,11 +62,53 @@ export class HomeScreen {
     this._coinBalanceEl = el.querySelector('#home-coin-balance');
     this._updateCoinBalance();
     currencyManager.subscribe(() => this._updateCoinBalance());
+    this.refreshProgress();
   }
 
   _updateCoinBalance() {
     if (this._coinBalanceEl) {
       this._coinBalanceEl.textContent = String(currencyManager.getBalance());
+    }
+  }
+
+  /**
+   * Rebuilds play buttons from saved progress.
+   * With progress: Continuar nivel N + Empezar nivel 1
+   * Without: Entrar (starts level 1)
+   */
+  refreshProgress() {
+    const continueIndex = saveManager.getContinueLevelIndex();
+    this._playActions.innerHTML = '';
+
+    if (continueIndex !== null) {
+      const levelNumber = continueIndex + 1;
+      const config = LEVELS[continueIndex];
+      const label = config ? config.name : `nivel ${levelNumber}`;
+
+      const continueBtn = document.createElement('button');
+      continueBtn.type = 'button';
+      continueBtn.id = 'btn-continue';
+      continueBtn.className = 'home-btn home-btn--primary';
+      continueBtn.textContent = `Continuar por el nivel ${levelNumber}`;
+      continueBtn.title = label;
+      continueBtn.addEventListener('click', () => this._handleEnter(continueIndex, 'continue'));
+
+      const startBtn = document.createElement('button');
+      startBtn.type = 'button';
+      startBtn.id = 'btn-start-level-1';
+      startBtn.className = 'home-btn home-btn--secondary';
+      startBtn.textContent = 'Empezar el nivel 1';
+      startBtn.addEventListener('click', () => this._handleEnter(0, 'start'));
+
+      this._playActions.append(continueBtn, startBtn);
+    } else {
+      const enterBtn = document.createElement('button');
+      enterBtn.type = 'button';
+      enterBtn.id = 'btn-enter';
+      enterBtn.className = 'home-btn home-btn--primary';
+      enterBtn.textContent = 'Entrar';
+      enterBtn.addEventListener('click', () => this._handleEnter(0, 'start'));
+      this._playActions.append(enterBtn);
     }
   }
 
@@ -121,7 +166,7 @@ export class HomeScreen {
     document.removeEventListener('keydown', this._howToKeyDown, true);
   }
 
-  _handleEnter() {
+  _handleEnter(levelIndex = 0, mode = 'start') {
     if (this._entering) return;
     this._entering = true;
     this._closeHowTo();
@@ -135,7 +180,11 @@ export class HomeScreen {
       if (finished) return;
       finished = true;
       this.hide();
-      this.onEnter?.();
+      if (mode === 'continue') {
+        this.onContinue?.(levelIndex);
+      } else {
+        this.onEnter?.(levelIndex);
+      }
     };
 
     const fadeMs = UI_CONFIG.home.enterFadeMs;
@@ -149,6 +198,14 @@ export class HomeScreen {
     };
 
     this.element.addEventListener('transitionend', onFadeEnd);
+  }
+
+  show() {
+    this._entering = false;
+    this.element.classList.remove('hidden', 'home-exiting');
+    this.element.classList.add('active');
+    this.refreshProgress();
+    this._updateCoinBalance();
   }
 
   hide() {

@@ -27,4 +27,17 @@ export const LEVELS = [
     entityStartCell: { x: 0, y: 0 },
     theme: THEMES.suburbs,
   },
+  {
+    id: 3,
+    name: 'NIVEL 188',
+    subtitle: 'The Apartments',
+    description:
+      'El suburbio se disolvió en un complejo de apartamentos que no termina nunca. Pasillos estrechos, papel tapiz amarillento y el zumbido constante de fluorescentes. Las puertas se repiten iguales. Algo camina detrás de ellas. Juntá las llaves y encontrá el ascensor de salida.',
+    mazeSize: 12,
+    keyCount: 5,
+    coinCount: 12,
+    entityEnabled: true,
+    entityStartCell: { x: 0, y: 0 },
+    theme: THEMES.apartments,
+  },
 ];

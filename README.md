@@ -68,3 +68,4 @@ Rutas antiguas (`src/core/`, `src/ui/`, etc.) reexportan los módulos nuevos por
 
 1. **Nivel 119 — Average Waterpark**
 2. **Nivel 9 — The Suburbs**
+3. **Nivel 188 — The Apartments**

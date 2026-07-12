@@ -23,6 +23,15 @@ export const AUDIO_CONFIG = {
       lfoFrequency: 0.09,
       lfoGain: 0.035,
     },
+    // Zumbido de fluorescentes / HVAC de pasillos de apartamento
+    hum: {
+      filterType: 'bandpass',
+      filterFrequency: 220,
+      filterQ: 1.2,
+      gain: 0.045,
+      lfoFrequency: 0.22,
+      lfoGain: 0.02,
+    },
     bufferSeconds: 3,
   },
   keyPickup: {

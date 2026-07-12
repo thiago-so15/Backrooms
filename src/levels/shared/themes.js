@@ -59,4 +59,46 @@ export const THEMES = {
     props: 'suburb',
     ambience: 'wind',
   },
+
+  // Level 188 - "The Apartments": pasillos de un complejo habitacional infinito,
+  // papel tapiz amarillento, alfombra manchada, fluorescentes que zumban.
+  apartments: {
+    key: 'apartments',
+    background: 0x1a1810,
+    fog: { color: 0x2a2618, density: 0.055 },
+    ambient: { color: 0xc9b87a, intensity: 0.38 },
+    lights: {
+      style: 'ceiling',
+      color: 0xe8d9a0,
+      intensity: 0.85,
+      distanceMul: 3.4,
+      spacingMul: 2,
+      height: 2.7,
+      flickerChance: 0.028,
+    },
+    ceiling: {
+      enabled: true,
+      type: 'tile',
+      base: '#cfc8b0',
+      grout: '#8a8468',
+      tint: '#d8cfa8',
+    },
+    wall: {
+      type: 'wallpaper',
+      base: '#c9b87a',
+      pattern: '#b5a468',
+      tint: '#a89860',
+      repeat: [2, 1],
+      renderHeight: 2.9,
+    },
+    floor: {
+      type: 'carpet',
+      base: '#5a4a32',
+      pattern: '#4a3c28',
+      repeat: 'grid',
+    },
+    exit: { style: 'door', locked: 0xb23a3a, unlocked: 0x3ad07a, glow: 0x8fffcf },
+    props: 'apartments',
+    ambience: 'hum',
+  },
 };

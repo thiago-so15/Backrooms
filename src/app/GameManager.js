@@ -87,9 +87,13 @@ export class GameManager {
       eventBus.emit(GAME_EVENTS.GAME_STARTED, {});
     };
 
-    screens.onEnter = () => {
+    screens.onEnter = (levelIndex = 0) => {
       this.levelManager.reset();
-      this._startLevel(0);
+      this._startLevel(levelIndex);
+    };
+
+    screens.onContinue = (levelIndex) => {
+      this._startLevel(levelIndex);
     };
 
     screens.onResume = () => {
@@ -115,8 +119,28 @@ export class GameManager {
       } else if (this.state === GAME_STATE.VICTORY_LEVEL) {
         this._cleanupLevel();
         this.levelManager.advanceLevel();
+        // Persist checkpoint so closing the tab mid-run still allows continue
+        saveManager.saveLevelProgress(this.levelManager.currentLevel);
         this._startLevel(this.levelManager.currentLevel);
       }
+    };
+
+    screens.onGoHome = (opts = {}) => {
+      this._cleanupLevel();
+      this.audio.stopDrone();
+      this.ui.hud.hide();
+      this._hidePlayControls();
+
+      if (opts.fromFinalVictory) {
+        saveManager.clearLevelProgress();
+      } else if (this.state === GAME_STATE.VICTORY_LEVEL) {
+        // Save the next level so Home offers "Continuar por el nivel N"
+        const nextIndex = this.levelManager.currentLevel + 1;
+        saveManager.saveLevelProgress(nextIndex);
+      }
+
+      this._setState(GAME_STATE.HOME);
+      this.ui.screens.showHome();
     };
   }
 
@@ -237,7 +261,8 @@ export class GameManager {
     } else {
       this._setState(GAME_STATE.VICTORY_LEVEL);
       const config = this.levelManager.getLevelConfig();
-      this.ui.screens.showLevelComplete(config.name);
+      const nextIndex = this.levelManager.currentLevel + 1;
+      this.ui.screens.showLevelComplete(config.name, nextIndex);
     }
 
     eventBus.emit(GAME_EVENTS.LEVEL_COMPLETED, {
