@@ -4,6 +4,7 @@ export const UI_CONFIG = {
     flashDuration: 0.5,
     sanityWarningThreshold: 40,
     entityProximityRadius: 9.5,
+    minimapSize: 148,
     barColors: {
       high: '#c9c17a',
       medium: '#a89040',

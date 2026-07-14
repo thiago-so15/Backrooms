@@ -14,7 +14,7 @@ export const GRAPHICS_CONFIG = {
   camera: {
     fov: 75,
     near: 0.1,
-    far: 80,
+    far: 140,
   },
   renderer: {
     antialias: true,

@@ -445,12 +445,13 @@ export class MazeBuilder {
 
   _buildSuburbProps(mazeData) {
     const { width, height } = mazeData;
+    const density = Math.min(0.12, 1.8 / Math.max(width, height));
     const postGeo = new THREE.BoxGeometry(0.08, 0.9, 0.08);
     const bodyGeo = new THREE.BoxGeometry(0.22, 0.24, 0.4);
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        if (Math.random() > 0.12) continue;
+        if (Math.random() > density) continue;
         const pos = MazeGenerator.cellToWorld(x, y, CELL_SIZE);
 
         // buzón junto a la casa
@@ -474,6 +475,7 @@ export class MazeBuilder {
 
   _buildApartmentProps(mazeData) {
     const { width, height } = mazeData;
+    const density = Math.min(0.16, 2.4 / Math.max(width, height));
     const doorMat = new THREE.MeshStandardMaterial({ color: 0x3a3228, roughness: 0.85 });
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x6a5e48, roughness: 0.8 });
     const plantMat = new THREE.MeshStandardMaterial({ color: 0x2a4a28, roughness: 0.9 });
@@ -486,7 +488,7 @@ export class MazeBuilder {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (x === 0 && y === 0) continue;
-        if (Math.random() > 0.18) continue;
+        if (Math.random() > density) continue;
         const pos = MazeGenerator.cellToWorld(x, y, CELL_SIZE);
         const side = Math.random() > 0.5 ? 1 : -1;
         const ox = side * (CELL_SIZE * 0.35);

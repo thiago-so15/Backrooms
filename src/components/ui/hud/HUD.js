@@ -1,8 +1,9 @@
 import { UI_CONFIG } from '../../../config/ui.config.js';
 import { PLAYER_CONFIG } from '../../../config/player.config.js';
+import { Minimap } from './Minimap.js';
 
 /**
- * In-game HUD overlay (HTML, not canvas).
+ * In-game HUD overlay (HTML, not canvas 3D).
  */
 export class HUD {
   constructor(container) {
@@ -11,6 +12,7 @@ export class HUD {
     this.messageTimer = 0;
     this.messageText = '';
     this.vignetteIntensity = 0;
+    this.minimap = null;
     this._build();
   }
 
@@ -24,10 +26,21 @@ export class HUD {
           <div id="hud-objective">Encuentra las llaves</div>
         </div>
         <div class="hud-top-right">
-          <div class="bar-label">CORDURA</div>
-          <div class="bar-container"><div id="bar-sanity" class="bar-fill"></div></div>
-          <div class="bar-label">BATERÍA</div>
-          <div class="bar-container"><div id="bar-battery" class="bar-fill"></div></div>
+          <div class="hud-minimap-wrap">
+            <canvas id="hud-minimap" width="148" height="148" aria-label="Mapa"></canvas>
+            <div class="hud-minimap-legend">
+              <span><i class="leg-player"></i>Vos</span>
+              <span><i class="leg-key"></i>Llave</span>
+              <span><i class="leg-exit"></i>Salida</span>
+              <span><i class="leg-entity"></i>Enemigo</span>
+            </div>
+          </div>
+          <div class="hud-bars">
+            <div class="bar-label">CORDURA</div>
+            <div class="bar-container"><div id="bar-sanity" class="bar-fill"></div></div>
+            <div class="bar-label">BATERÍA</div>
+            <div class="bar-container"><div id="bar-battery" class="bar-fill"></div></div>
+          </div>
         </div>
         <div id="crosshair">+</div>
         <div id="hud-message"></div>
@@ -46,6 +59,11 @@ export class HUD {
     this.messageEl = this.container.querySelector('#hud-message');
     this.vignetteEl = this.container.querySelector('#vignette');
     this.flashEl = this.container.querySelector('#flash-overlay');
+    this.minimap = new Minimap(this.container.querySelector('#hud-minimap'));
+  }
+
+  setMaze(mazeData) {
+    this.minimap?.setMaze(mazeData);
   }
 
   show() {
@@ -68,6 +86,11 @@ export class HUD {
       maxBattery,
       entityDistance,
       exitUnlocked,
+      playerPos,
+      playerYaw,
+      keys,
+      exit,
+      entity,
     } = state;
 
     this.levelEl.textContent = levelName;
@@ -79,6 +102,15 @@ export class HUD {
 
     this._setBar(this.sanityBar, sanity, maxSanity ?? PLAYER_CONFIG.survival.maxStat);
     this._setBar(this.batteryBar, battery, maxBattery ?? PLAYER_CONFIG.survival.maxStat);
+
+    this.minimap?.update({
+      playerPos,
+      playerYaw,
+      keys,
+      exit,
+      exitUnlocked,
+      entity,
+    });
 
     const hudCfg = UI_CONFIG.hud;
     const entityRadius = hudCfg.entityProximityRadius;

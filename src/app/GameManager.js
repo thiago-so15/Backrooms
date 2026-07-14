@@ -164,9 +164,11 @@ export class GameManager {
 
     const { config, mazeData } = this.levelManager.generateLevel(levelIndex);
     this.currentTheme = config.theme;
+    this.currentMazeData = mazeData;
     this.lighting.applyTheme(config.theme);
     this.mazeBuilder.build(mazeData, config.theme);
     this.lighting.addLights(config.theme, mazeData.width, mazeData.height);
+    this.ui.hud.setMaze(mazeData);
 
     const start = this.levelManager.getPlayerStart();
     this.player.reset(start.x, start.z);
@@ -331,6 +333,7 @@ export class GameManager {
     }
 
     const config = this.levelManager.getLevelConfig();
+    const exitDoor = this.mazeBuilder.exitDoor;
     this.ui.hud.update({
       levelName: config.name,
       keysCollected: this.pickup.collected,
@@ -342,6 +345,13 @@ export class GameManager {
       maxBattery: survivalState.maxBattery,
       entityDistance: entityResult.distance,
       exitUnlocked: this.exitUnlocked,
+      playerPos,
+      playerYaw: this.camera.rotation.y,
+      keys: this.pickup.keys,
+      exit: exitDoor ? exitDoor.position : null,
+      entity: this.entity.active
+        ? { x: this.entity.worldX, z: this.entity.worldZ, active: true }
+        : null,
       dt,
     });
 

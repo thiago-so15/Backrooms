@@ -179,9 +179,60 @@ html, body {
 
 .hud-top-right {
   position: absolute;
-  top: 1.2rem;
-  right: 1.5rem;
+  top: 1rem;
+  right: 1rem;
   width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  pointer-events: none;
+}
+
+.hud-minimap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+#hud-minimap {
+  display: block;
+  width: 148px;
+  height: 148px;
+  image-rendering: pixelated;
+  background: #050400;
+  border: 1px solid rgba(138, 131, 84, 0.55);
+}
+
+.hud-minimap-legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: #8a8354;
+  text-shadow: 0 0 4px #050400;
+}
+
+.hud-minimap-legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.hud-minimap-legend i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+}
+
+.leg-player { background: #c9c17a; clip-path: polygon(100% 50%, 0 0, 0 100%); }
+.leg-key { background: #e8c84a; border-radius: 50%; }
+.leg-exit { background: #b23a3a; }
+.leg-entity { background: #ff2a2a; border-radius: 50%; }
+
+.hud-bars {
+  width: 100%;
 }
 
 .bar-label {
