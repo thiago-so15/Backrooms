@@ -5,9 +5,16 @@ import { shopManager } from '../economy/ShopManager.js';
 export const DETECT_RADIUS = ENEMY_CONFIG.detectRadius;
 export const ENTITY_PROXIMITY_RADIUS = PLAYER_CONFIG.survival.entityProximity;
 
+const DEFAULT_LEVEL_MODS = {
+  sanityDrainMult: 1,
+  sanityEntityMult: 1,
+  sanityRegenMult: 1,
+  batteryDrainMult: 1,
+};
+
 /**
  * Tracks sanity and flashlight battery drain/regen.
- * Max stats scale with shop upgrades.
+ * Max stats scale with shop upgrades; drain rates scale with level size.
  */
 export class SurvivalSystem {
   constructor() {
@@ -16,13 +23,23 @@ export class SurvivalSystem {
     this.sanity = this.maxSanity;
     this.battery = this.maxBattery;
     this.flashlightOn = true;
+    this.levelIndex = 0;
+  }
+
+  setLevelIndex(levelIndex) {
+    this.levelIndex = Math.max(0, levelIndex | 0);
+  }
+
+  _levelMods() {
+    const list = PLAYER_CONFIG.survival.byLevel || [];
+    return list[this.levelIndex] || list[list.length - 1] || DEFAULT_LEVEL_MODS;
   }
 
   _applyModifiers() {
     const mods = shopManager.getModifiers();
     this.maxSanity = mods.maxSanity;
     this.maxBattery = mods.maxBattery;
-    this._batteryDrainMult = mods.batteryDrainMult;
+    this._shopBatteryDrainMult = mods.batteryDrainMult;
   }
 
   reset() {
@@ -35,12 +52,16 @@ export class SurvivalSystem {
   update(dt, flashlightOn, entityDistance) {
     this._applyModifiers();
     const cfg = PLAYER_CONFIG.survival;
+    const levelMods = this._levelMods();
     this.flashlightOn = flashlightOn;
 
-    const drain = cfg.batteryDrain * (this._batteryDrainMult ?? 1);
+    const batteryDrain =
+      cfg.batteryDrain *
+      (this._shopBatteryDrainMult ?? 1) *
+      (levelMods.batteryDrainMult ?? 1);
 
     if (flashlightOn) {
-      this.battery = Math.max(0, this.battery - drain * dt);
+      this.battery = Math.max(0, this.battery - batteryDrain * dt);
       if (this.battery <= 0) {
         this.battery = 0;
         this.flashlightOn = false;
@@ -49,16 +70,21 @@ export class SurvivalSystem {
       this.battery = Math.min(this.maxBattery, this.battery + cfg.batteryRecharge * dt);
     }
 
-    let sanityDrain = flashlightOn ? cfg.sanityDrainLightOn : cfg.sanityDrainLightOff;
+    let sanityDrain = (flashlightOn ? cfg.sanityDrainLightOn : cfg.sanityDrainLightOff) *
+      (levelMods.sanityDrainMult ?? 1);
 
     const entityNear = entityDistance < cfg.entityProximity;
     if (entityNear) {
       const proximity = 1 - entityDistance / cfg.entityProximity;
-      sanityDrain += cfg.sanityDrainEntityNear * proximity;
+      sanityDrain +=
+        cfg.sanityDrainEntityNear *
+        proximity *
+        (levelMods.sanityEntityMult ?? 1);
     }
 
     if (flashlightOn && !entityNear) {
-      this.sanity = Math.min(this.maxSanity, this.sanity + cfg.sanityRegenSafe * dt);
+      const regen = cfg.sanityRegenSafe * (levelMods.sanityRegenMult ?? 1);
+      this.sanity = Math.min(this.maxSanity, this.sanity + regen * dt);
     } else {
       this.sanity = Math.max(0, this.sanity - sanityDrain * dt);
     }

@@ -159,6 +159,7 @@ export class GameManager {
 
   _startLevel(levelIndex) {
     this._cleanupLevel();
+    this.survival.setLevelIndex(levelIndex);
     this.survival.reset();
     this.exitUnlocked = false;
 

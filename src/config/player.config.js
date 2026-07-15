@@ -25,5 +25,32 @@ export const PLAYER_CONFIG = {
     sanityRegenSafe: 1.2,
     entityProximity: 9.5,
     maxStat: 100,
+    /**
+     * Per-level multipliers so large maps (2+) stay completable.
+     * Index matches LevelManager.currentLevel (0 = level 1).
+     */
+    byLevel: [
+      // Level 1 — waterpark (small): keep base challenge
+      {
+        sanityDrainMult: 1,
+        sanityEntityMult: 1,
+        sanityRegenMult: 1,
+        batteryDrainMult: 1,
+      },
+      // Level 2 — suburbs (large)
+      {
+        sanityDrainMult: 0.22,
+        sanityEntityMult: 0.18,
+        sanityRegenMult: 2.4,
+        batteryDrainMult: 0.35,
+      },
+      // Level 3 — apartments (very large)
+      {
+        sanityDrainMult: 0.15,
+        sanityEntityMult: 0.12,
+        sanityRegenMult: 2.8,
+        batteryDrainMult: 0.28,
+      },
+    ],
   },
 };
