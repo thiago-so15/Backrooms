@@ -229,7 +229,8 @@ html, body {
 .leg-player { background: #c9c17a; clip-path: polygon(100% 50%, 0 0, 0 100%); }
 .leg-key { background: #e8c84a; border-radius: 50%; }
 .leg-exit { background: #b23a3a; }
-.leg-entity { background: #ff2a2a; border-radius: 50%; }
+.leg-entity { background: #5a5a5a; border-radius: 50%; }
+.leg-smiler { background: #ffe089; border-radius: 50%; }
 
 .hud-bars {
   width: 100%;
@@ -1114,4 +1115,106 @@ html.reduce-motion .home-screen.home-exiting {
 #hud-coins {
   color: #e8c84a;
   font-size: 0.8rem;
+}
+
+/* Levels panel */
+.levels-panel {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: rgba(10, 9, 4, 0.96);
+  border: 1px solid rgba(138, 131, 84, 0.4);
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.levels-hint {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: #8a8354;
+  margin: 0 0 1.25rem;
+  text-align: center;
+}
+
+.levels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.level-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(138, 131, 84, 0.3);
+  background: rgba(20, 18, 10, 0.45);
+}
+
+.level-card--locked {
+  opacity: 0.55;
+}
+
+.level-card-num {
+  font-size: 0.7rem;
+  letter-spacing: 0.12rem;
+  text-transform: uppercase;
+  color: #8a8354;
+  margin: 0 0 0.2rem;
+}
+
+.level-card-name {
+  font-size: 0.9rem;
+  font-weight: normal;
+  letter-spacing: 0.08rem;
+  color: #c9c17a;
+  margin: 0 0 0.2rem;
+}
+
+.level-card-sub {
+  font-size: 0.75rem;
+  color: #8a8354;
+  margin: 0 0 0.35rem;
+}
+
+.level-card-status {
+  font-size: 0.7rem;
+  color: #a89f62;
+  margin: 0;
+}
+
+.level-card--locked .level-card-status {
+  color: #6a6440;
+}
+
+.level-play-btn {
+  flex-shrink: 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  min-height: 36px;
+  background: transparent;
+  border: 1px solid #8a8354;
+  color: #c9c17a;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.level-play-btn:hover:not(:disabled) {
+  background: #c9c17a;
+  color: #050400;
+}
+
+.level-play-btn--locked,
+.level-play-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.level-play-btn:focus-visible {
+  outline: 2px solid #c9c17a;
+  outline-offset: 2px;
 }

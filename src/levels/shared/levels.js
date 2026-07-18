@@ -11,7 +11,7 @@ export const LEVELS = [
     mazeSize: 5,
     keyCount: 2,
     coinCount: 6,
-    entityEnabled: false,
+    hostiles: [],
     theme: THEMES.waterpark,
   },
   {
@@ -19,12 +19,14 @@ export const LEVELS = [
     name: 'NIVEL 9',
     subtitle: 'The Suburbs',
     description:
-      'Un tobogán amarillo te escupió a un suburbio interminable, atrapado en una noche perpetua. Niebla espesa, asfalto húmedo, faroles que titilan. Las casas se repiten iguales. Algo camina entre ellas, siempre a la misma distancia. No te salgas de la luz.',
+      'Un tobogán amarillo te escupió a un suburbio interminable, atrapado en una noche perpetua. Niebla espesa, asfalto húmedo, faroles que titilan. Las casas se repiten iguales. Figuras de ojos negros caminan entre ellas — y algo con una sonrisa brillando también. No te salgas de la luz.',
     mazeSize: 20,
     keyCount: 6,
     coinCount: 16,
-    entityEnabled: true,
-    entityStartCell: { x: 0, y: 0 },
+    hostiles: [
+      { type: 'entity', count: 3 },
+      { type: 'smiler', count: 2 },
+    ],
     theme: THEMES.suburbs,
   },
   {
@@ -32,12 +34,14 @@ export const LEVELS = [
     name: 'NIVEL 188',
     subtitle: 'The Apartments',
     description:
-      'El suburbio se disolvió en un complejo de apartamentos que no termina nunca. Pasillos estrechos, papel tapiz amarillento y el zumbido constante de fluorescentes. Las puertas se repiten iguales. Algo camina detrás de ellas. Juntá las llaves y encontrá el ascensor de salida.',
+      'El suburbio se disolvió en un complejo de apartamentos que no termina nunca. Pasillos estrechos, papel tapiz amarillento y el zumbido constante de fluorescentes. Las puertas se repiten iguales. Ojos negros y sonrisas amarillas te acechan por todo el edificio. Juntá las llaves y encontrá el ascensor de salida.',
     mazeSize: 24,
     keyCount: 8,
     coinCount: 20,
-    entityEnabled: true,
-    entityStartCell: { x: 0, y: 0 },
+    hostiles: [
+      { type: 'entity', count: 4 },
+      { type: 'smiler', count: 3 },
+    ],
     theme: THEMES.apartments,
   },
 ];

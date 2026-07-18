@@ -3,6 +3,7 @@ import { UI_CONFIG } from '../../../../config/ui.config.js';
 import { currencyManager } from '../../../../systems/economy/CurrencyManager.js';
 import { saveManager } from '../../../../systems/save/SaveManager.js';
 import { LEVELS } from '../../../../levels/shared/levels.js';
+import { LevelsPanel } from '../../dialogs/LevelsPanel.js';
 
 /**
  * Home / main menu overlay.
@@ -12,6 +13,7 @@ export class HomeScreen {
     this.container = container;
     this.settingsPanel = settingsPanel;
     this.shopPanel = shopPanel;
+    this.levelsPanel = new LevelsPanel(container);
     this.element = null;
     this.howToOverlay = null;
     this.onEnterClick = null;
@@ -19,6 +21,10 @@ export class HomeScreen {
     this.onContinue = null;
     this._entering = false;
     this._build();
+
+    this.levelsPanel.onSelectLevel = (levelIndex) => {
+      this._handleEnter(levelIndex, levelIndex > 0 ? 'continue' : 'start');
+    };
   }
 
   _build() {
@@ -42,6 +48,7 @@ export class HomeScreen {
         <div class="home-actions home-reveal home-reveal--actions">
           <p class="home-coins home-reveal home-reveal--coins">Monedas: <span id="home-coin-balance">0</span></p>
           <div id="home-play-actions" class="home-play-actions"></div>
+          <button type="button" id="btn-levels" class="home-btn home-btn--secondary">Niveles</button>
           <button type="button" id="btn-shop" class="home-btn home-btn--secondary">Tienda</button>
           <button type="button" id="btn-how-to-play" class="home-btn home-btn--secondary">Cómo jugar</button>
         </div>
@@ -53,6 +60,7 @@ export class HomeScreen {
     this._playActions = el.querySelector('#home-play-actions');
     this._buildHowToModal();
 
+    el.querySelector('#btn-levels').addEventListener('click', () => this.levelsPanel.open());
     el.querySelector('#btn-shop').addEventListener('click', () => this.shopPanel.open());
     el.querySelector('#btn-how-to-play').addEventListener('click', () => this._openHowTo());
     el.querySelector('.home-settings-btn').addEventListener('click', () => {
@@ -71,11 +79,6 @@ export class HomeScreen {
     }
   }
 
-  /**
-   * Rebuilds play buttons from saved progress.
-   * With progress: Continuar nivel N + Empezar nivel 1
-   * Without: Entrar (starts level 1)
-   */
   refreshProgress() {
     const continueIndex = saveManager.getContinueLevelIndex();
     this._playActions.innerHTML = '';
@@ -137,7 +140,7 @@ export class HomeScreen {
 
     this.container.appendChild(this.howToOverlay);
 
-    const close = () => this._closeHowTo();
+    const close = () => this._closeHowToModal();
     this.howToOverlay.querySelector('.howto-close').addEventListener('click', close);
     this.howToOverlay.addEventListener('click', (e) => {
       if (e.target === this.howToOverlay) close();
@@ -160,16 +163,23 @@ export class HomeScreen {
     this.howToOverlay.querySelector('.howto-close').focus();
   }
 
-  _closeHowTo() {
+  _closeHowToModal() {
     this.howToOverlay.classList.add('hidden');
     this.howToOverlay.setAttribute('aria-hidden', 'true');
     document.removeEventListener('keydown', this._howToKeyDown, true);
   }
 
+  _closeOverlays() {
+    this._closeHowToModal();
+    this.levelsPanel.close();
+  }
+
   _handleEnter(levelIndex = 0, mode = 'start') {
     if (this._entering) return;
+    if (!saveManager.isLevelUnlocked(levelIndex)) return;
+
     this._entering = true;
-    this._closeHowTo();
+    this._closeOverlays();
 
     this.onEnterClick?.();
 
@@ -211,6 +221,6 @@ export class HomeScreen {
   hide() {
     this.element.classList.remove('active', 'home-exiting');
     this.element.classList.add('hidden');
-    this._closeHowTo();
+    this._closeOverlays();
   }
 }

@@ -9,7 +9,8 @@ const COLORS = {
   key: '#e8c84a',
   exitLocked: '#b23a3a',
   exitUnlocked: '#3ad07a',
-  entity: '#ff2a2a',
+  entity: '#5a5a5a',
+  smiler: '#ffe089',
   border: 'rgba(138, 131, 84, 0.55)',
 };
 
@@ -44,6 +45,7 @@ export class Minimap {
    *   exit: {x:number,z:number}|null,
    *   exitUnlocked: boolean,
    *   entity: {x:number,z:number,active:boolean}|null,
+   *   entities?: Array<{x:number,z:number,active:boolean,type?:string}>,
    * }} state
    */
   update(state) {
@@ -128,11 +130,17 @@ export class Minimap {
       ctx.strokeRect(p.x - r, p.y - r, r * 2, r * 2);
     }
 
-    // Entity / monster
-    if (state.entity?.active) {
-      const p = toMap(state.entity.x, state.entity.z);
+    // Entities / monsters
+    const entities = state.entities?.length
+      ? state.entities
+      : state.entity?.active
+        ? [state.entity]
+        : [];
+    for (const ent of entities) {
+      if (!ent?.active) continue;
+      const p = toMap(ent.x, ent.z);
       const r = Math.max(2.5, Math.min(cellW, cellH) * 0.28);
-      ctx.fillStyle = COLORS.entity;
+      ctx.fillStyle = ent.type === 'smiler' ? COLORS.smiler : COLORS.entity;
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       ctx.fill();

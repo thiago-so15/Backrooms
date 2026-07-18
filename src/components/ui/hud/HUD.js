@@ -33,6 +33,7 @@ export class HUD {
               <span><i class="leg-key"></i>Llave</span>
               <span><i class="leg-exit"></i>Salida</span>
               <span><i class="leg-entity"></i>Enemigo</span>
+              <span><i class="leg-smiler"></i>Smiler</span>
             </div>
           </div>
           <div class="hud-bars">
@@ -91,6 +92,7 @@ export class HUD {
       keys,
       exit,
       entity,
+      entities,
     } = state;
 
     this.levelEl.textContent = levelName;
@@ -110,6 +112,7 @@ export class HUD {
       exit,
       exitUnlocked,
       entity,
+      entities,
     });
 
     const hudCfg = UI_CONFIG.hud;

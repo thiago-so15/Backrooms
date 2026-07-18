@@ -12,6 +12,7 @@ import { saveManager } from '../systems/save/SaveManager.js';
 import { MazeBuilder } from '../graphics/maze/MazeBuilder.js';
 import { Player } from '../entities/player/Player.js';
 import { Entity } from '../entities/enemy/Entity.js';
+import { Smiler } from '../entities/enemy/Smiler.js';
 import { Pickup } from '../entities/items/Pickup.js';
 import { CoinPickup } from '../entities/items/CoinPickup.js';
 import { currencyManager } from '../systems/economy/CurrencyManager.js';
@@ -38,7 +39,7 @@ export class GameManager {
 
     this.mazeBuilder = null;
     this.player = null;
-    this.entity = null;
+    this.hostiles = [];
     this.pickup = null;
     this.coinPickup = null;
 
@@ -61,7 +62,7 @@ export class GameManager {
     this.camera = camera;
     this.mazeBuilder = new MazeBuilder(scene);
     this.player = new Player(camera, scene);
-    this.entity = new Entity(scene);
+    this.hostiles = [];
     this.pickup = new Pickup(scene);
     this.coinPickup = new CoinPickup(scene);
     this._loop();
@@ -147,6 +148,7 @@ export class GameManager {
   _bindInput() {
     this.input.onEscape = () => {
       if (this.ui.settingsPanel.isOpen || this.ui.shopPanel.isOpen) return;
+      if (this.ui.screens.home?.levelsPanel?.isOpen) return;
       if (this.state === GAME_STATE.PLAYING) {
         this._setState(GAME_STATE.PAUSED);
         this._hidePlayControls();
@@ -183,13 +185,7 @@ export class GameManager {
     );
 
     this._applyShopModifiers();
-
-    const entityStart = this.levelManager.getEntityStart(config);
-    if (entityStart) {
-      this.entity.spawn(mazeData, config.id, entityStart.x, entityStart.y);
-    } else {
-      this.entity.dispose();
-    }
+    this._spawnHostiles(config, mazeData);
 
     this._setState(GAME_STATE.INTRO);
     this.ui.screens.showIntro(
@@ -199,6 +195,25 @@ export class GameManager {
     );
     this.ui.hud.hide();
     this.ui.touchControls.hide();
+  }
+
+  _spawnHostiles(config, mazeData) {
+    this._clearHostiles();
+    const spawns = this.levelManager.getHostileSpawns(config, mazeData);
+    for (const spawn of spawns) {
+      const enemy =
+        spawn.type === 'smiler' ? new Smiler(this.scene) : new Entity(this.scene);
+      enemy.spawn(mazeData, config.id, spawn.x, spawn.y);
+      enemy.hostileType = spawn.type === 'smiler' ? 'smiler' : 'entity';
+      this.hostiles.push(enemy);
+    }
+  }
+
+  _clearHostiles() {
+    for (const enemy of this.hostiles) {
+      enemy.dispose();
+    }
+    this.hostiles = [];
   }
 
   _applyShopModifiers() {
@@ -237,7 +252,7 @@ export class GameManager {
     this.lighting.clearLights();
     this.pickup.clear();
     this.coinPickup.clear();
-    this.entity.dispose();
+    this._clearHostiles();
     this.exitUnlocked = false;
   }
 
@@ -265,6 +280,8 @@ export class GameManager {
       this._setState(GAME_STATE.VICTORY_LEVEL);
       const config = this.levelManager.getLevelConfig();
       const nextIndex = this.levelManager.currentLevel + 1;
+      // Unlock next level as soon as this one is cleared
+      saveManager.saveLevelProgress(nextIndex);
       this.ui.screens.showLevelComplete(config.name, nextIndex);
     }
 
@@ -283,10 +300,16 @@ export class GameManager {
 
     const playerPos = this.player.update(this.input, dt, this.mazeBuilder.wallBoxes);
 
+    let nearestEntityDist = Infinity;
+    for (const enemy of this.hostiles) {
+      if (!enemy.active) continue;
+      nearestEntityDist = Math.min(nearestEntityDist, enemy.getDistanceTo(playerPos));
+    }
+
     const survivalState = this.survival.update(
       dt,
       this.player.flashlightOn,
-      this.entity.active ? this.entity.getDistanceTo(playerPos) : Infinity
+      nearestEntityDist
     );
 
     if (!survivalState.flashlightOn && this.player.flashlightOn) {
@@ -298,10 +321,14 @@ export class GameManager {
       eventBus.emit(GAME_EVENTS.BATTERY_LOW, { battery: 0 });
     }
 
-    const entityResult = this.entity.update(dt, playerPos);
-    if (entityResult.caught) {
-      this._gameOver(GAME_CONFIG.gameOverMessages.caught);
-      return;
+    let closestDist = Infinity;
+    for (const enemy of this.hostiles) {
+      const result = enemy.update(dt, playerPos);
+      closestDist = Math.min(closestDist, result.distance);
+      if (result.caught) {
+        this._gameOver(GAME_CONFIG.gameOverMessages.caught);
+        return;
+      }
     }
 
     if (survivalState.sanityDepleted) {
@@ -344,15 +371,20 @@ export class GameManager {
       battery: survivalState.battery,
       maxSanity: survivalState.maxSanity,
       maxBattery: survivalState.maxBattery,
-      entityDistance: entityResult.distance,
+      entityDistance: closestDist,
       exitUnlocked: this.exitUnlocked,
       playerPos,
       playerYaw: this.camera.rotation.y,
       keys: this.pickup.keys,
       exit: exitDoor ? exitDoor.position : null,
-      entity: this.entity.active
-        ? { x: this.entity.worldX, z: this.entity.worldZ, active: true }
-        : null,
+      entities: this.hostiles
+        .filter((e) => e.active)
+        .map((e) => ({
+          x: e.worldX,
+          z: e.worldZ,
+          active: true,
+          type: e.hostileType || 'entity',
+        })),
       dt,
     });
 
@@ -374,7 +406,6 @@ export class GameManager {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this._cleanupLevel();
     this.mazeBuilder.dispose();
-    this.entity.dispose();
     this.pickup.dispose();
     this.coinPickup.dispose();
     this.audio.dispose();

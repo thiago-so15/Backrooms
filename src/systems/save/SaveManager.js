@@ -3,14 +3,52 @@ import { storageService } from '../../services/storage/StorageService.js';
 import { LEVELS } from '../../levels/shared/levels.js';
 
 /**
- * Handles persistent game progress (level unlock + victory).
+ * Handles persistent game progress (level unlock + continue + victory).
  */
 export class SaveManager {
+  _readSave() {
+    const data = storageService.load(STORAGE_KEYS.SAVE_DATA, null);
+    if (!data || typeof data !== 'object') {
+      return { nextLevelIndex: null, highestUnlocked: 0 };
+    }
+    const maxIndex = LEVELS.length - 1;
+    let highestUnlocked = Number.isFinite(data.highestUnlocked)
+      ? Math.floor(data.highestUnlocked)
+      : 0;
+    // Legacy: nextLevelIndex > 0 implies those levels are unlocked
+    if (Number.isFinite(data.nextLevelIndex)) {
+      highestUnlocked = Math.max(highestUnlocked, Math.floor(data.nextLevelIndex));
+    }
+    if (this.hasCompletedGame()) {
+      highestUnlocked = maxIndex;
+    }
+    highestUnlocked = Math.max(0, Math.min(maxIndex, highestUnlocked));
+
+    let nextLevelIndex = null;
+    if (Number.isFinite(data.nextLevelIndex)) {
+      const idx = Math.floor(data.nextLevelIndex);
+      if (idx > 0 && idx <= maxIndex) nextLevelIndex = idx;
+    }
+
+    return { nextLevelIndex, highestUnlocked };
+  }
+
+  _writeSave(partial) {
+    const current = this._readSave();
+    storageService.save(STORAGE_KEYS.SAVE_DATA, {
+      ...current,
+      ...partial,
+      savedAt: new Date().toISOString(),
+    });
+  }
+
   saveVictory() {
     storageService.save(STORAGE_KEYS.COMPLETED, true);
     storageService.save(STORAGE_KEYS.COMPLETED_AT, new Date().toISOString());
-    // After finishing the game, clear mid-run continue checkpoint
-    this.clearLevelProgress();
+    this._writeSave({
+      highestUnlocked: LEVELS.length - 1,
+      nextLevelIndex: null,
+    });
   }
 
   hasCompletedGame() {
@@ -34,29 +72,33 @@ export class SaveManager {
   }
 
   /**
-   * Saves the next level the player can continue from (0-based index).
-   * Called when leaving to Home after completing a level.
+   * After beating a level at `completedIndex`, unlock the next one and
+   * set continue checkpoint to that next level.
    */
   saveLevelProgress(nextLevelIndex) {
     const maxIndex = LEVELS.length - 1;
     const clamped = Math.max(0, Math.min(maxIndex, Math.floor(nextLevelIndex)));
-    storageService.save(STORAGE_KEYS.SAVE_DATA, {
+    const current = this._readSave();
+    this._writeSave({
       nextLevelIndex: clamped,
-      savedAt: new Date().toISOString(),
+      highestUnlocked: Math.max(current.highestUnlocked, clamped),
     });
+  }
+
+  /** Highest unlocked level index (0 = only level 1). */
+  getHighestUnlocked() {
+    return this._readSave().highestUnlocked;
+  }
+
+  isLevelUnlocked(levelIndex) {
+    return levelIndex <= this.getHighestUnlocked();
   }
 
   /**
    * @returns {number|null} 0-based level index to continue, or null if none.
    */
   getContinueLevelIndex() {
-    const data = storageService.load(STORAGE_KEYS.SAVE_DATA, null);
-    if (!data || typeof data.nextLevelIndex !== 'number') return null;
-    const index = Math.floor(data.nextLevelIndex);
-    if (index < 0 || index >= LEVELS.length) return null;
-    // No "continue" if the only option is starting from the beginning with no progress
-    if (index <= 0) return null;
-    return index;
+    return this._readSave().nextLevelIndex;
   }
 
   hasContinueProgress() {
@@ -64,7 +106,11 @@ export class SaveManager {
   }
 
   clearLevelProgress() {
+    const unlocked = this.getHighestUnlocked();
     storageService.remove(STORAGE_KEYS.SAVE_DATA);
+    if (unlocked > 0) {
+      this._writeSave({ highestUnlocked: unlocked, nextLevelIndex: null });
+    }
   }
 
   clearProgress() {
