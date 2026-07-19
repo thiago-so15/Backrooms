@@ -118,6 +118,16 @@ export class SaveManager {
     storageService.remove(STORAGE_KEYS.COMPLETED_AT);
     storageService.remove(STORAGE_KEYS.SAVE_DATA);
   }
+
+  /**
+   * Full account wipe: levels, victory flags, coins and shop upgrades.
+   * Keeps audio/video settings.
+   */
+  resetAccount() {
+    this.clearProgress();
+    storageService.remove(STORAGE_KEYS.ECONOMY);
+    storageService.remove(STORAGE_KEYS.META);
+  }
 }
 
 export const saveManager = new SaveManager();

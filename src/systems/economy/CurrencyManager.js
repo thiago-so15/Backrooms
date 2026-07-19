@@ -48,6 +48,13 @@ class CurrencyManager {
     return true;
   }
 
+  /** Wipe coins for a fresh account. */
+  reset() {
+    this._coins = 0;
+    this._persist();
+    this._notify();
+  }
+
   subscribe(listener) {
     this._listeners.add(listener);
     return () => this._listeners.delete(listener);

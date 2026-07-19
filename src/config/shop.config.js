@@ -34,11 +34,11 @@ export const SHOP_ITEMS = [
   },
   {
     id: 'sanity_1',
-    name: 'Mente estable',
-    description: 'Aumenta tu cordura máxima en un 25%.',
+    name: 'Vitalidad',
+    description: 'Aumenta tu vida máxima en un 25%.',
     price: 15,
     requires: null,
-    effect: { maxSanityBonus: 25 },
+    effect: { maxHealthBonus: 25 },
   },
   {
     id: 'speed_1',

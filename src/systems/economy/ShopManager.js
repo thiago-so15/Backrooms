@@ -66,13 +66,20 @@ class ShopManager {
     return true;
   }
 
+  /** Wipe owned upgrades for a fresh account. */
+  reset() {
+    this._owned = [];
+    this._persist();
+    this._notify();
+  }
+
   /**
    * Combined modifiers from all owned upgrades.
    */
   getModifiers() {
     const base = PLAYER_CONFIG.survival.maxStat;
     let maxBattery = base;
-    let maxSanity = base;
+    let maxHealth = base;
     let batteryDrainMult = 1;
     let speedMult = 1;
 
@@ -81,12 +88,14 @@ class ShopManager {
       if (!item?.effect) continue;
       const { effect } = item;
       if (effect.maxBatteryBonus) maxBattery += effect.maxBatteryBonus;
-      if (effect.maxSanityBonus) maxSanity += effect.maxSanityBonus;
+      if (effect.maxHealthBonus) maxHealth += effect.maxHealthBonus;
+      // Legacy save key from when the upgrade boosted sanity
+      if (effect.maxSanityBonus) maxHealth += effect.maxSanityBonus;
       if (effect.batteryDrainMult) batteryDrainMult *= effect.batteryDrainMult;
       if (effect.speedMult) speedMult *= effect.speedMult;
     }
 
-    return { maxBattery, maxSanity, batteryDrainMult, speedMult };
+    return { maxBattery, maxHealth, batteryDrainMult, speedMult };
   }
 
   subscribe(listener) {

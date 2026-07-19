@@ -19,38 +19,22 @@ export const PLAYER_CONFIG = {
   survival: {
     batteryDrain: 3.2,
     batteryRecharge: 3.5,
-    sanityDrainLightOn: 0.5,
-    sanityDrainLightOff: 1.6,
-    sanityDrainEntityNear: 4.5,
-    sanityRegenSafe: 1.2,
-    entityProximity: 9.5,
     maxStat: 100,
+    /** HP lost each time an entity bites the player. */
+    damagePerHit: 25,
+    /** Smiler bites harder. */
+    smilerDamagePerHit: 30,
+    /** Seconds of invulnerability after a hit. */
+    hitInvulnSeconds: 1.35,
+    entityProximity: 9.5,
     /**
-     * Per-level multipliers so large maps (2+) stay completable.
+     * Per-level battery multipliers so large maps stay completable.
      * Index matches LevelManager.currentLevel (0 = level 1).
      */
     byLevel: [
-      // Level 1 — waterpark (small): keep base challenge
-      {
-        sanityDrainMult: 1,
-        sanityEntityMult: 1,
-        sanityRegenMult: 1,
-        batteryDrainMult: 1,
-      },
-      // Level 2 — suburbs (large)
-      {
-        sanityDrainMult: 0.22,
-        sanityEntityMult: 0.18,
-        sanityRegenMult: 2.4,
-        batteryDrainMult: 0.35,
-      },
-      // Level 3 — apartments (very large)
-      {
-        sanityDrainMult: 0.15,
-        sanityEntityMult: 0.12,
-        sanityRegenMult: 2.8,
-        batteryDrainMult: 0.28,
-      },
+      { batteryDrainMult: 1 },
+      { batteryDrainMult: 0.35 },
+      { batteryDrainMult: 0.28 },
     ],
   },
 };

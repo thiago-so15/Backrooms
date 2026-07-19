@@ -209,6 +209,23 @@ export class LightingManager {
     this.lights = [];
   }
 
+  /** Restore menu-safe clear color after leaving a level. */
+  resetToDefaultBackground() {
+    this.currentTheme = null;
+    this.baseFogDensity = GRAPHICS_CONFIG.defaultFogDensity;
+    if (this.scene?.background) {
+      this.scene.background.setHex(GRAPHICS_CONFIG.defaultBackground);
+    }
+    if (this.scene?.fog) {
+      this.scene.fog.color.setHex(GRAPHICS_CONFIG.defaultFogColor);
+      this.scene.fog.density = GRAPHICS_CONFIG.defaultFogDensity;
+    }
+    if (this.ambient) {
+      this.ambient.color.setHex(GRAPHICS_CONFIG.ambient.color);
+      this.ambient.intensity = GRAPHICS_CONFIG.ambient.intensity;
+    }
+  }
+
   updateLights(dt) {
     const reduceFlicker = settingsManager.getSetting('reduceLightFlicker');
 

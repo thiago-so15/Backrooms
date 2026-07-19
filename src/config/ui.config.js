@@ -2,7 +2,7 @@ export const UI_CONFIG = {
   hud: {
     messageDuration: 2.5,
     flashDuration: 0.5,
-    sanityWarningThreshold: 40,
+    healthWarningThreshold: 40,
     entityProximityRadius: 9.5,
     minimapSize: 148,
     barColors: {

@@ -46,13 +46,14 @@ export class Screens {
         <button id="btn-resume" class="btn">CONTINUAR</button>
         <button id="btn-shop-pause" class="btn btn-secondary">TIENDA</button>
         <button id="btn-settings-pause" class="btn btn-secondary">AJUSTES</button>
-        <button id="btn-retry-pause" class="btn btn-secondary">REINTENTAR</button>
+        <button id="btn-retry-pause" class="btn btn-secondary">VOLVER A INTENTAR</button>
       </div>
 
       <div id="screen-gameover" class="screen">
         <h2 class="danger">GAME OVER</h2>
         <p id="gameover-reason"></p>
-        <button id="btn-retry-go" class="btn">REINTENTAR</button>
+        <button id="btn-retry-go" class="btn">VOLVER A INTENTAR</button>
+        <button id="btn-gameover-home" class="btn btn-secondary">INICIO</button>
       </div>
 
       <div id="screen-victory-level" class="screen">
@@ -65,7 +66,7 @@ export class Screens {
       <div id="screen-victory" class="screen">
         <h1 class="title-flicker">SEGUÍS DESCENDIENDO</h1>
         <p class="intro-text">Cruzaste el parque acuático, los suburbios y el complejo de apartamentos. La puerta del ascensor se cierra detrás tuyo. Más abajo, algo espera... pero eso es otra historia.</p>
-        <button id="btn-victory-retry" class="btn">VOLVER A EMPEZAR</button>
+        <button id="btn-victory-retry" class="btn">VOLVER A INTENTAR</button>
         <button id="btn-victory-final-home" class="btn btn-secondary">INICIO</button>
       </div>
     `);
@@ -95,6 +96,9 @@ export class Screens {
     });
     this.container.querySelector('#btn-retry-go').addEventListener('click', () => {
       if (this.onRetry) this.onRetry();
+    });
+    this.container.querySelector('#btn-gameover-home').addEventListener('click', () => {
+      if (this.onGoHome) this.onGoHome();
     });
     this.container.querySelector('#btn-next-level').addEventListener('click', () => {
       if (this.onNextLevel) this.onNextLevel();

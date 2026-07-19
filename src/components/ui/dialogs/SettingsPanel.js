@@ -1,4 +1,7 @@
 import { settingsManager } from '../../../systems/save/SettingsManager.js';
+import { saveManager } from '../../../systems/save/SaveManager.js';
+import { currencyManager } from '../../../systems/economy/CurrencyManager.js';
+import { shopManager } from '../../../systems/economy/ShopManager.js';
 
 const FOCUSABLE = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
@@ -10,7 +13,9 @@ export class SettingsPanel {
     this.overlay = null;
     this.isOpen = false;
     this._resetConfirming = false;
+    this._accountResetConfirming = false;
     this._previousFocus = null;
+    this.onAccountReset = null;
     this._onKeyDown = this._handleKeyDown.bind(this);
     this._build();
     this._syncFromStore();
@@ -87,6 +92,11 @@ export class SettingsPanel {
             <span class="settings-label">Reducir parpadeo de luces</span>
           </label>
         </section>
+        <section class="settings-section">
+          <h3 class="settings-section-title">Progreso</h3>
+          <p class="settings-note settings-note--inline">Borra niveles desbloqueados, monedas y mejoras de la tienda. Los ajustes de audio y video se mantienen.</p>
+          <button type="button" id="btn-reset-account" class="settings-reset-btn settings-reset-btn--danger">Empezar de nuevo</button>
+        </section>
       </div>
       <div class="settings-footer">
         <p class="settings-note">Los ajustes se guardan automáticamente en este navegador.</p>
@@ -110,6 +120,7 @@ export class SettingsPanel {
       valMouseSensitivity: this.element.querySelector('#val-mouse-sensitivity'),
       fullscreenBtn: this.element.querySelector('#btn-fullscreen'),
       resetBtn: this.element.querySelector('#btn-reset-settings'),
+      resetAccountBtn: this.element.querySelector('#btn-reset-account'),
       closeBtn: this.element.querySelector('.modal-close'),
     };
 
@@ -145,6 +156,7 @@ export class SettingsPanel {
 
     r.fullscreenBtn.addEventListener('click', () => this._toggleFullscreen());
     r.resetBtn.addEventListener('click', () => this._handleReset());
+    r.resetAccountBtn.addEventListener('click', () => this._handleAccountReset());
     r.closeBtn.addEventListener('click', () => this.close());
 
     this.overlay.addEventListener('click', (e) => {
@@ -171,21 +183,49 @@ export class SettingsPanel {
     r.valMouseSensitivity.textContent = `${s.mouseSensitivity.toFixed(1)}x`;
 
     this._resetConfirming = false;
+    this._accountResetConfirming = false;
     r.resetBtn.textContent = 'Restablecer valores por defecto';
     r.resetBtn.classList.remove('settings-reset-btn--confirm');
+    r.resetAccountBtn.textContent = 'Empezar de nuevo';
+    r.resetAccountBtn.classList.remove('settings-reset-btn--confirm');
   }
 
   _handleReset() {
     const { resetBtn } = this._refs;
     if (!this._resetConfirming) {
       this._resetConfirming = true;
-      resetBtn.textContent = '¿Restablecer todo?';
+      this._accountResetConfirming = false;
+      this._refs.resetAccountBtn.textContent = 'Empezar de nuevo';
+      this._refs.resetAccountBtn.classList.remove('settings-reset-btn--confirm');
+      resetBtn.textContent = '¿Restablecer ajustes?';
       resetBtn.classList.add('settings-reset-btn--confirm');
       return;
     }
 
     settingsManager.reset();
     this._resetConfirming = false;
+  }
+
+  _handleAccountReset() {
+    const { resetAccountBtn } = this._refs;
+    if (!this._accountResetConfirming) {
+      this._accountResetConfirming = true;
+      this._resetConfirming = false;
+      this._refs.resetBtn.textContent = 'Restablecer valores por defecto';
+      this._refs.resetBtn.classList.remove('settings-reset-btn--confirm');
+      resetAccountBtn.textContent = '¿Borrar todo el progreso?';
+      resetAccountBtn.classList.add('settings-reset-btn--confirm');
+      return;
+    }
+
+    saveManager.resetAccount();
+    currencyManager.reset();
+    shopManager.reset();
+    this._accountResetConfirming = false;
+    resetAccountBtn.textContent = 'Empezar de nuevo';
+    resetAccountBtn.classList.remove('settings-reset-btn--confirm');
+    this.onAccountReset?.();
+    this.close();
   }
 
   async _toggleFullscreen() {
@@ -257,6 +297,7 @@ export class SettingsPanel {
     this.overlay.setAttribute('aria-hidden', 'true');
     document.removeEventListener('keydown', this._onKeyDown, true);
     this._resetConfirming = false;
+    this._accountResetConfirming = false;
 
     if (this._previousFocus && typeof this._previousFocus.focus === 'function') {
       this._previousFocus.focus();

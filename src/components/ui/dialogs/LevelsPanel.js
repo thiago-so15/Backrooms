@@ -48,15 +48,19 @@ export class LevelsPanel {
 
   _render() {
     const unlocked = saveManager.getHighestUnlocked();
+    const completedGame = saveManager.hasCompletedGame();
 
     this._listEl.innerHTML = LEVELS.map((level, index) => {
       const isUnlocked = index <= unlocked;
       const number = index + 1;
-      const status = isUnlocked
-        ? index < unlocked || saveManager.hasCompletedGame()
-          ? 'Completado / disponible'
-          : 'Disponible'
-        : 'Bloqueado';
+      let status;
+      if (!isUnlocked) {
+        status = `Bloqueado — completá el nivel ${number - 1}`;
+      } else if (completedGame || index < unlocked) {
+        status = 'Completado';
+      } else {
+        status = 'Disponible';
+      }
 
       return `
         <article class="level-card ${isUnlocked ? 'level-card--unlocked' : 'level-card--locked'}">

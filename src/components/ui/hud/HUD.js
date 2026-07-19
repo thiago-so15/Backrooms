@@ -37,8 +37,8 @@ export class HUD {
             </div>
           </div>
           <div class="hud-bars">
-            <div class="bar-label">CORDURA</div>
-            <div class="bar-container"><div id="bar-sanity" class="bar-fill"></div></div>
+            <div class="bar-label">VIDA</div>
+            <div class="bar-container"><div id="bar-health" class="bar-fill bar-fill--health"></div></div>
             <div class="bar-label">BATERÍA</div>
             <div class="bar-container"><div id="bar-battery" class="bar-fill"></div></div>
           </div>
@@ -55,7 +55,7 @@ export class HUD {
     this.keysEl = this.container.querySelector('#hud-keys');
     this.coinsEl = this.container.querySelector('#hud-coins');
     this.objectiveEl = this.container.querySelector('#hud-objective');
-    this.sanityBar = this.container.querySelector('#bar-sanity');
+    this.healthBar = this.container.querySelector('#bar-health');
     this.batteryBar = this.container.querySelector('#bar-battery');
     this.messageEl = this.container.querySelector('#hud-message');
     this.vignetteEl = this.container.querySelector('#vignette');
@@ -81,9 +81,9 @@ export class HUD {
       keysCollected,
       keysTotal,
       coins,
-      sanity,
+      health,
       battery,
-      maxSanity,
+      maxHealth,
       maxBattery,
       entityDistance,
       exitUnlocked,
@@ -102,7 +102,7 @@ export class HUD {
       ? 'Dirígete a la salida'
       : 'Encuentra las llaves';
 
-    this._setBar(this.sanityBar, sanity, maxSanity ?? PLAYER_CONFIG.survival.maxStat);
+    this._setBar(this.healthBar, health, maxHealth ?? PLAYER_CONFIG.survival.maxStat);
     this._setBar(this.batteryBar, battery, maxBattery ?? PLAYER_CONFIG.survival.maxStat);
 
     this.minimap?.update({
@@ -119,11 +119,14 @@ export class HUD {
     const entityRadius = hudCfg.entityProximityRadius;
 
     let vignette = 0;
-    if (sanity < hudCfg.sanityWarningThreshold) {
-      vignette = Math.max(vignette, (hudCfg.sanityWarningThreshold - sanity) / hudCfg.sanityWarningThreshold);
+    if (health < hudCfg.healthWarningThreshold) {
+      vignette = Math.max(
+        vignette,
+        (hudCfg.healthWarningThreshold - health) / hudCfg.healthWarningThreshold
+      );
     }
     if (entityDistance < entityRadius) {
-      vignette = Math.max(vignette, ((entityRadius - entityDistance) / entityRadius) * 0.8);
+      vignette = Math.max(vignette, ((entityRadius - entityDistance) / entityRadius) * 0.55);
     }
     this.vignetteIntensity = vignette;
     const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.004);

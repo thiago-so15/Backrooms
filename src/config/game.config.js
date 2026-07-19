@@ -15,6 +15,6 @@ export const GAME_CONFIG = {
   },
   gameOverMessages: {
     caught: 'Te atrapó. El lugar te reclamó.',
-    sanity: 'Te absorbió el lugar.',
+    health: 'Te comieron vivo.',
   },
 };

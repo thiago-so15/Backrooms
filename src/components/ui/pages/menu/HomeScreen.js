@@ -2,7 +2,6 @@ import { hasFinePointer } from '../../../../utils/platform.js';
 import { UI_CONFIG } from '../../../../config/ui.config.js';
 import { currencyManager } from '../../../../systems/economy/CurrencyManager.js';
 import { saveManager } from '../../../../systems/save/SaveManager.js';
-import { LEVELS } from '../../../../levels/shared/levels.js';
 import { LevelsPanel } from '../../dialogs/LevelsPanel.js';
 
 /**
@@ -23,7 +22,7 @@ export class HomeScreen {
     this._build();
 
     this.levelsPanel.onSelectLevel = (levelIndex) => {
-      this._handleEnter(levelIndex, levelIndex > 0 ? 'continue' : 'start');
+      this._handleEnter(levelIndex);
     };
   }
 
@@ -37,7 +36,6 @@ export class HomeScreen {
     el.id = 'screen-home';
     el.className = 'screen home-screen active';
     el.innerHTML = `
-      <button type="button" class="home-settings-btn home-reveal home-reveal--settings" aria-label="Ajustes">&#9881;</button>
       <div class="home-content">
         <h1 class="home-title home-title-flicker home-reveal home-reveal--title">THE BACKROOMS</h1>
         <p class="home-subtitle home-reveal home-reveal--subtitle">no deberías estar acá</p>
@@ -47,17 +45,16 @@ export class HomeScreen {
         ${compatWarning}
         <div class="home-actions home-reveal home-reveal--actions">
           <p class="home-coins home-reveal home-reveal--coins">Monedas: <span id="home-coin-balance">0</span></p>
-          <div id="home-play-actions" class="home-play-actions"></div>
-          <button type="button" id="btn-levels" class="home-btn home-btn--secondary">Niveles</button>
+          <button type="button" id="btn-levels" class="home-btn home-btn--primary">Niveles</button>
           <button type="button" id="btn-shop" class="home-btn home-btn--secondary">Tienda</button>
           <button type="button" id="btn-how-to-play" class="home-btn home-btn--secondary">Cómo jugar</button>
         </div>
       </div>
+      <button type="button" class="home-settings-btn home-reveal home-reveal--settings" aria-label="Ajustes">&#9881;</button>
     `;
 
     this.container.appendChild(el);
     this.element = el;
-    this._playActions = el.querySelector('#home-play-actions');
     this._buildHowToModal();
 
     el.querySelector('#btn-levels').addEventListener('click', () => this.levelsPanel.open());
@@ -70,7 +67,6 @@ export class HomeScreen {
     this._coinBalanceEl = el.querySelector('#home-coin-balance');
     this._updateCoinBalance();
     currencyManager.subscribe(() => this._updateCoinBalance());
-    this.refreshProgress();
   }
 
   _updateCoinBalance() {
@@ -79,40 +75,9 @@ export class HomeScreen {
     }
   }
 
+  /** Kept for Screens.showHome() compatibility. */
   refreshProgress() {
-    const continueIndex = saveManager.getContinueLevelIndex();
-    this._playActions.innerHTML = '';
-
-    if (continueIndex !== null) {
-      const levelNumber = continueIndex + 1;
-      const config = LEVELS[continueIndex];
-      const label = config ? config.name : `nivel ${levelNumber}`;
-
-      const continueBtn = document.createElement('button');
-      continueBtn.type = 'button';
-      continueBtn.id = 'btn-continue';
-      continueBtn.className = 'home-btn home-btn--primary';
-      continueBtn.textContent = `Continuar por el nivel ${levelNumber}`;
-      continueBtn.title = label;
-      continueBtn.addEventListener('click', () => this._handleEnter(continueIndex, 'continue'));
-
-      const startBtn = document.createElement('button');
-      startBtn.type = 'button';
-      startBtn.id = 'btn-start-level-1';
-      startBtn.className = 'home-btn home-btn--secondary';
-      startBtn.textContent = 'Empezar el nivel 1';
-      startBtn.addEventListener('click', () => this._handleEnter(0, 'start'));
-
-      this._playActions.append(continueBtn, startBtn);
-    } else {
-      const enterBtn = document.createElement('button');
-      enterBtn.type = 'button';
-      enterBtn.id = 'btn-enter';
-      enterBtn.className = 'home-btn home-btn--primary';
-      enterBtn.textContent = 'Entrar';
-      enterBtn.addEventListener('click', () => this._handleEnter(0, 'start'));
-      this._playActions.append(enterBtn);
-    }
+    // Play buttons removed — entry is only through Niveles.
   }
 
   _buildHowToModal() {
@@ -133,7 +98,7 @@ export class HomeScreen {
             <div class="howto-row"><dt>F</dt><dd>Encender / apagar la linterna</dd></div>
             <div class="howto-row"><dt>Esc</dt><dd>Pausar</dd></div>
           </dl>
-          <p class="howto-objective">Encontrá todas las llaves de cada nivel y llegá a la salida. Juntá monedas en el mapa y gastalas en la Tienda para mejorar tu linterna y más. Cuidá tu cordura y la batería.</p>
+          <p class="howto-objective">Encontrá todas las llaves de cada nivel y llegá a la salida. Juntá monedas en el mapa y gastalas en la Tienda para mejorar tu linterna y más. Cuidá tu vida y la batería: las entidades te muerden y te bajan la vida. Completá un nivel para desbloquear el siguiente.</p>
         </div>
       </div>
     `;
@@ -174,7 +139,7 @@ export class HomeScreen {
     this.levelsPanel.close();
   }
 
-  _handleEnter(levelIndex = 0, mode = 'start') {
+  _handleEnter(levelIndex = 0) {
     if (this._entering) return;
     if (!saveManager.isLevelUnlocked(levelIndex)) return;
 
@@ -190,11 +155,7 @@ export class HomeScreen {
       if (finished) return;
       finished = true;
       this.hide();
-      if (mode === 'continue') {
-        this.onContinue?.(levelIndex);
-      } else {
-        this.onEnter?.(levelIndex);
-      }
+      this.onEnter?.(levelIndex);
     };
 
     const fadeMs = UI_CONFIG.home.enterFadeMs;

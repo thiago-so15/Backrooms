@@ -1,6 +1,7 @@
 import { GAME_STATE } from '../constants/gameState.js';
 import { GAME_EVENTS } from '../constants/events.js';
 import { GAME_CONFIG } from '../config/game.config.js';
+import { PLAYER_CONFIG } from '../config/player.config.js';
 import { eventBus } from '../systems/events/EventBus.js';
 import { LightingManager } from '../systems/lighting/LightingManager.js';
 import { InputManager } from '../systems/player/InputManager.js';
@@ -89,7 +90,6 @@ export class GameManager {
     };
 
     screens.onEnter = (levelIndex = 0) => {
-      this.levelManager.reset();
       this._startLevel(levelIndex);
     };
 
@@ -107,11 +107,11 @@ export class GameManager {
 
     screens.onRetry = () => {
       this._cleanupLevel();
-      this.levelManager.reset();
       this.survival.reset();
       this.ui.hud.reset();
       this.audio.stopDrone();
-      this._startLevel(0);
+      // Retry the current level — never jump back to level 1
+      this._startLevel(this.levelManager.currentLevel);
     };
 
     screens.onNextLevel = () => {
@@ -250,6 +250,7 @@ export class GameManager {
   _cleanupLevel() {
     this.mazeBuilder.clear();
     this.lighting.clearLights();
+    this.lighting.resetToDefaultBackground();
     this.pickup.clear();
     this.coinPickup.clear();
     this._clearHostiles();
@@ -300,17 +301,7 @@ export class GameManager {
 
     const playerPos = this.player.update(this.input, dt, this.mazeBuilder.wallBoxes);
 
-    let nearestEntityDist = Infinity;
-    for (const enemy of this.hostiles) {
-      if (!enemy.active) continue;
-      nearestEntityDist = Math.min(nearestEntityDist, enemy.getDistanceTo(playerPos));
-    }
-
-    const survivalState = this.survival.update(
-      dt,
-      this.player.flashlightOn,
-      nearestEntityDist
-    );
+    const survivalState = this.survival.update(dt, this.player.flashlightOn);
 
     if (!survivalState.flashlightOn && this.player.flashlightOn) {
       this.player.setFlashlightState(false);
@@ -325,14 +316,24 @@ export class GameManager {
     for (const enemy of this.hostiles) {
       const result = enemy.update(dt, playerPos);
       closestDist = Math.min(closestDist, result.distance);
-      if (result.caught) {
-        this._gameOver(GAME_CONFIG.gameOverMessages.caught);
-        return;
+      if (result.caught && !this.survival.isInvulnerable) {
+        const cfg = PLAYER_CONFIG.survival;
+        const damage =
+          enemy.hostileType === 'smiler' ? cfg.smilerDamagePerHit : cfg.damagePerHit;
+        if (this.survival.takeDamage(damage)) {
+          this.ui.hud.triggerFlash(0.35);
+          this.audio.playStaticBurst();
+          this.ui.hud.showMessage('¡Te mordió!');
+          if (this.survival.health <= 0) {
+            this._gameOver(GAME_CONFIG.gameOverMessages.health);
+            return;
+          }
+        }
       }
     }
 
-    if (survivalState.sanityDepleted) {
-      this._gameOver(GAME_CONFIG.gameOverMessages.sanity);
+    if (survivalState.healthDepleted) {
+      this._gameOver(GAME_CONFIG.gameOverMessages.health);
       return;
     }
 
@@ -367,9 +368,9 @@ export class GameManager {
       keysCollected: this.pickup.collected,
       keysTotal: config.keyCount,
       coins: currencyManager.getBalance(),
-      sanity: survivalState.sanity,
+      health: this.survival.health,
       battery: survivalState.battery,
-      maxSanity: survivalState.maxSanity,
+      maxHealth: this.survival.maxHealth,
       maxBattery: survivalState.maxBattery,
       entityDistance: closestDist,
       exitUnlocked: this.exitUnlocked,

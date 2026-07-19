@@ -6,24 +6,23 @@ export const DETECT_RADIUS = ENEMY_CONFIG.detectRadius;
 export const ENTITY_PROXIMITY_RADIUS = PLAYER_CONFIG.survival.entityProximity;
 
 const DEFAULT_LEVEL_MODS = {
-  sanityDrainMult: 1,
-  sanityEntityMult: 1,
-  sanityRegenMult: 1,
   batteryDrainMult: 1,
 };
 
 /**
- * Tracks sanity and flashlight battery drain/regen.
- * Max stats scale with shop upgrades; drain rates scale with level size.
+ * Tracks player health and flashlight battery.
+ * Health only drops when an entity bites the player.
  */
 export class SurvivalSystem {
   constructor() {
-    this.maxSanity = PLAYER_CONFIG.survival.maxStat;
+    this.maxHealth = PLAYER_CONFIG.survival.maxStat;
     this.maxBattery = PLAYER_CONFIG.survival.maxStat;
-    this.sanity = this.maxSanity;
+    this.health = this.maxHealth;
     this.battery = this.maxBattery;
     this.flashlightOn = true;
     this.levelIndex = 0;
+    this.invulnTimer = 0;
+    this._shopBatteryDrainMult = 1;
   }
 
   setLevelIndex(levelIndex) {
@@ -37,23 +36,48 @@ export class SurvivalSystem {
 
   _applyModifiers() {
     const mods = shopManager.getModifiers();
-    this.maxSanity = mods.maxSanity;
+    this.maxHealth = mods.maxHealth;
     this.maxBattery = mods.maxBattery;
     this._shopBatteryDrainMult = mods.batteryDrainMult;
   }
 
   reset() {
     this._applyModifiers();
-    this.sanity = this.maxSanity;
+    this.health = this.maxHealth;
     this.battery = this.maxBattery;
     this.flashlightOn = true;
+    this.invulnTimer = 0;
   }
 
-  update(dt, flashlightOn, entityDistance) {
+  get isInvulnerable() {
+    return this.invulnTimer > 0;
+  }
+
+  /**
+   * Apply bite damage. Returns true if damage was applied.
+   */
+  takeDamage(amount) {
+    if (this.invulnTimer > 0 || this.health <= 0) return false;
+    const dmg = Math.max(0, amount);
+    if (dmg <= 0) return false;
+
+    this.health = Math.max(0, this.health - dmg);
+    this.invulnTimer = PLAYER_CONFIG.survival.hitInvulnSeconds;
+    return true;
+  }
+
+  update(dt, flashlightOn) {
     this._applyModifiers();
     const cfg = PLAYER_CONFIG.survival;
     const levelMods = this._levelMods();
     this.flashlightOn = flashlightOn;
+
+    if (this.invulnTimer > 0) {
+      this.invulnTimer = Math.max(0, this.invulnTimer - dt);
+    }
+
+    // Keep current health within new max (e.g. after shop buy mid-run)
+    this.health = Math.min(this.health, this.maxHealth);
 
     const batteryDrain =
       cfg.batteryDrain *
@@ -70,38 +94,20 @@ export class SurvivalSystem {
       this.battery = Math.min(this.maxBattery, this.battery + cfg.batteryRecharge * dt);
     }
 
-    let sanityDrain = (flashlightOn ? cfg.sanityDrainLightOn : cfg.sanityDrainLightOff) *
-      (levelMods.sanityDrainMult ?? 1);
-
-    const entityNear = entityDistance < cfg.entityProximity;
-    if (entityNear) {
-      const proximity = 1 - entityDistance / cfg.entityProximity;
-      sanityDrain +=
-        cfg.sanityDrainEntityNear *
-        proximity *
-        (levelMods.sanityEntityMult ?? 1);
-    }
-
-    if (flashlightOn && !entityNear) {
-      const regen = cfg.sanityRegenSafe * (levelMods.sanityRegenMult ?? 1);
-      this.sanity = Math.min(this.maxSanity, this.sanity + regen * dt);
-    } else {
-      this.sanity = Math.max(0, this.sanity - sanityDrain * dt);
-    }
-
     return {
-      sanity: this.sanity,
+      health: this.health,
       battery: this.battery,
-      maxSanity: this.maxSanity,
+      maxHealth: this.maxHealth,
       maxBattery: this.maxBattery,
       flashlightOn: this.flashlightOn && this.battery > 0,
-      sanityDepleted: this.sanity <= 0,
+      healthDepleted: this.health <= 0,
       batteryDepleted: this.battery <= 0,
+      invulnerable: this.invulnTimer > 0,
     };
   }
 
-  getSanityPercent() {
-    return (this.sanity / this.maxSanity) * 100;
+  getHealthPercent() {
+    return (this.health / this.maxHealth) * 100;
   }
 
   getBatteryPercent() {
