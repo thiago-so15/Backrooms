@@ -1,5 +1,5 @@
 export const ENEMY_CONFIG = {
-  speedsByLevel: [0, 1.9, 2.05, 2.35],
+  speedsByLevel: [0, 1.9, 2.05, 2.35, 2.5],
   fallbackSpeed: 2.4,
   chaseMultiplier: 1.1,
   detectRadius: 7.5,
@@ -12,7 +12,7 @@ export const ENEMY_CONFIG = {
 
 /** Second hostile: Smiler — stalks, blinks closer, lunges when near. */
 export const SMILER_CONFIG = {
-  speedsByLevel: [0, 0, 1.55, 1.7],
+  speedsByLevel: [0, 0, 1.55, 1.7, 1.85],
   fallbackSpeed: 1.7,
   chaseMultiplier: 2.15,
   detectRadius: 10,

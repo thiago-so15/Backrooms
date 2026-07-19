@@ -44,4 +44,19 @@ export const LEVELS = [
     ],
     theme: THEMES.apartments,
   },
+  {
+    id: 4,
+    name: 'NIVEL 2',
+    subtitle: 'Pipe Dreams',
+    description:
+      'El ascensor se abrió a un laberinto de mantenimiento: cañerías oxidadas, vapor que quema la garganta y luces de emergencia que parpadean en naranja. El metal gotea. Algo se arrastra entre los ductos. Juntá las llaves y encontrá la compuerta de salida antes de que el vapor te ciegue.',
+    mazeSize: 26,
+    keyCount: 9,
+    coinCount: 22,
+    hostiles: [
+      { type: 'entity', count: 5 },
+      { type: 'smiler', count: 4 },
+    ],
+    theme: THEMES.pipes,
+  },
 ];

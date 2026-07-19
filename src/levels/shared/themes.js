@@ -101,4 +101,44 @@ export const THEMES = {
     props: 'apartments',
     ambience: 'hum',
   },
+
+  // Level 2 - "Pipe Dreams": túneles de mantenimiento, óxido, vapor y luces de emergencia.
+  pipes: {
+    key: 'pipes',
+    background: 0x0a0806,
+    fog: { color: 0x1a120c, density: 0.062 },
+    ambient: { color: 0x4a3020, intensity: 0.22 },
+    lights: {
+      style: 'ceiling',
+      color: 0xff6a2a,
+      intensity: 0.7,
+      distanceMul: 3.0,
+      spacingMul: 2.2,
+      height: 2.55,
+      flickerChance: 0.045,
+    },
+    ceiling: {
+      enabled: true,
+      type: 'tile',
+      base: '#2a2420',
+      grout: '#151210',
+      tint: '#3a2a18',
+    },
+    wall: {
+      type: 'facade',
+      base: '#3a322c',
+      grout: '#1a1612',
+      tint: '#5a3a28',
+      repeat: [1, 1],
+      renderHeight: 2.85,
+    },
+    floor: {
+      type: 'asphalt',
+      base: '#12100e',
+      repeat: 'grid',
+    },
+    exit: { style: 'door', locked: 0xb23a3a, unlocked: 0x3ad07a, glow: 0xffa060 },
+    props: 'pipes',
+    ambience: 'pipes',
+  },
 };

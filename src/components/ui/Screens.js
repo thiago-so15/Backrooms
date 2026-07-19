@@ -1,6 +1,7 @@
 import { HomeScreen } from './pages/menu/HomeScreen.js';
 import { SettingsPanel } from './dialogs/SettingsPanel.js';
 import { ShopPanel } from './dialogs/ShopPanel.js';
+import { PinGate } from './dialogs/PinGate.js';
 import { LEVELS } from '../../levels/shared/levels.js';
 
 export class Screens {
@@ -29,6 +30,16 @@ export class Screens {
     this.home.onContinue = (levelIndex) => {
       if (this.onContinue) this.onContinue(levelIndex);
     };
+
+    // Block home until the access code step finishes
+    this.home.element.classList.add('home-screen--gated');
+    this.pinGate = new PinGate(container);
+    this.pinGate.onComplete = () => {
+      this.home.element.classList.remove('home-screen--gated');
+      this.home.refreshProgress();
+      this.home._updateCoinBalance?.();
+    };
+    this.pinGate.show();
   }
 
   _build() {
@@ -65,7 +76,7 @@ export class Screens {
 
       <div id="screen-victory" class="screen">
         <h1 class="title-flicker">SEGUÍS DESCENDIENDO</h1>
-        <p class="intro-text">Cruzaste el parque acuático, los suburbios y el complejo de apartamentos. La puerta del ascensor se cierra detrás tuyo. Más abajo, algo espera... pero eso es otra historia.</p>
+        <p class="intro-text">Cruzaste el parque acuático, los suburbios, el complejo de apartamentos y los túneles de cañerías. La compuerta se sella detrás tuyo. Más abajo, algo espera... pero eso es otra historia.</p>
         <button id="btn-victory-retry" class="btn">VOLVER A INTENTAR</button>
         <button id="btn-victory-final-home" class="btn btn-secondary">INICIO</button>
       </div>

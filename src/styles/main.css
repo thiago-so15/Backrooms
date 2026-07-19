@@ -529,6 +529,116 @@ html, body {
   pointer-events: none;
 }
 
+.home-screen.home-screen--gated {
+  pointer-events: none;
+}
+
+/* Access code gate */
+.pin-gate-overlay {
+  z-index: 300;
+}
+
+.pin-gate-panel {
+  width: 100%;
+  max-width: 320px;
+  background: rgba(10, 9, 4, 0.97);
+  border: 1px solid rgba(138, 131, 84, 0.45);
+  padding: 1.5rem 1.35rem 1.35rem;
+  text-align: center;
+}
+
+.pin-gate-title {
+  font-size: 0.95rem;
+  font-weight: normal;
+  letter-spacing: 0.22rem;
+  text-transform: uppercase;
+  color: #c9c17a;
+  margin-bottom: 0.5rem;
+}
+
+.pin-gate-hint {
+  font-size: 0.75rem;
+  color: #8a8354;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.06rem;
+}
+
+.pin-gate-slots {
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+
+.pin-slot {
+  width: 2.5rem;
+  height: 2.75rem;
+  border: 1px solid rgba(138, 131, 84, 0.45);
+  background: rgba(20, 18, 10, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: #c9c17a;
+  line-height: 1;
+}
+
+.pin-slot--active {
+  border-color: #c9c17a;
+}
+
+.pin-slot--filled {
+  border-color: rgba(201, 193, 122, 0.7);
+}
+
+.pin-gate-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.pin-key {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  min-height: 2.75rem;
+  background: rgba(20, 18, 10, 0.75);
+  border: 1px solid rgba(138, 131, 84, 0.4);
+  color: #c9c17a;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.pin-key:hover,
+.pin-key:focus-visible {
+  background: rgba(201, 193, 122, 0.18);
+  border-color: #c9c17a;
+  outline: none;
+}
+
+.pin-key:active {
+  background: rgba(201, 193, 122, 0.3);
+}
+
+.pin-key--action {
+  font-size: 0.85rem;
+  letter-spacing: 0.04rem;
+  color: #8a8354;
+}
+
+.pin-key--ok {
+  color: #c9c17a;
+}
+
+.pin-gate-status {
+  min-height: 1.4rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: #e8c84a;
+  letter-spacing: 0.04rem;
+}
+
 @media (max-width: 600px) {
   .home-screen {
     padding: 1.5rem 1.25rem;

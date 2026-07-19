@@ -94,6 +94,13 @@ export class SaveManager {
     return levelIndex <= this.getHighestUnlocked();
   }
 
+  /** Unlock every level (access-code / debug). */
+  unlockAllLevels() {
+    this._writeSave({
+      highestUnlocked: LEVELS.length - 1,
+    });
+  }
+
   /**
    * @returns {number|null} 0-based level index to continue, or null if none.
    */

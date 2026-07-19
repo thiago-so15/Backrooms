@@ -350,6 +350,7 @@ export class MazeBuilder {
     if (theme.props === 'slides') this._buildWaterparkProps(mazeData);
     else if (theme.props === 'suburb') this._buildSuburbProps(mazeData);
     else if (theme.props === 'apartments') this._buildApartmentProps(mazeData);
+    else if (theme.props === 'pipes') this._buildPipeProps(mazeData);
 
     this._buildExit(mazeData, theme);
     return { worldW, worldH };
@@ -525,6 +526,92 @@ export class MazeBuilder {
           const plant = new THREE.Mesh(foliageGeo, plantMat);
           plant.position.set(pot.position.x, 0.42, pot.position.z);
           this.group.add(plant);
+        }
+      }
+    }
+  }
+
+  /* -------------------- props: pipe dreams (Level 2) -------------------- */
+
+  _buildPipeProps(mazeData) {
+    const { width, height } = mazeData;
+    const density = Math.min(0.2, 3.2 / Math.max(width, height));
+    const rustMat = new THREE.MeshStandardMaterial({
+      color: 0x5a3a28,
+      roughness: 0.85,
+      metalness: 0.55,
+    });
+    const darkMat = new THREE.MeshStandardMaterial({
+      color: 0x2a2420,
+      roughness: 0.7,
+      metalness: 0.7,
+    });
+    const valveMat = new THREE.MeshStandardMaterial({
+      color: 0x8a2a1a,
+      roughness: 0.55,
+      metalness: 0.4,
+      emissive: 0x3a1008,
+      emissiveIntensity: 0.15,
+    });
+    const steamMat = new THREE.MeshStandardMaterial({
+      color: 0xc8c0b0,
+      transparent: true,
+      opacity: 0.22,
+      roughness: 1,
+      depthWrite: false,
+    });
+
+    const longPipeGeo = new THREE.CylinderGeometry(0.12, 0.12, CELL_SIZE * 0.7, 8);
+    const vertPipeGeo = new THREE.CylinderGeometry(0.16, 0.18, 2.4, 8);
+    const elbowGeo = new THREE.TorusGeometry(0.28, 0.1, 6, 10, Math.PI / 2);
+    const valveGeo = new THREE.TorusGeometry(0.22, 0.05, 6, 12);
+    const steamGeo = new THREE.SphereGeometry(0.35, 8, 8);
+
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (x === 0 && y === 0) continue;
+        if (Math.random() > density) continue;
+        const pos = MazeGenerator.cellToWorld(x, y, CELL_SIZE);
+        const side = Math.random() > 0.5 ? 1 : -1;
+
+        if (Math.random() < 0.55) {
+          const pipe = new THREE.Mesh(longPipeGeo, Math.random() > 0.4 ? rustMat : darkMat);
+          pipe.rotation.z = Math.PI / 2;
+          pipe.position.set(pos.x, 2.35 + Math.random() * 0.15, pos.z + side * 0.9);
+          this.group.add(pipe);
+
+          if (Math.random() < 0.45) {
+            const elbow = new THREE.Mesh(elbowGeo, rustMat);
+            elbow.position.set(pipe.position.x + 0.9, pipe.position.y, pipe.position.z);
+            elbow.rotation.y = side > 0 ? 0 : Math.PI;
+            this.group.add(elbow);
+          }
+        } else {
+          const riser = new THREE.Mesh(vertPipeGeo, darkMat);
+          riser.position.set(
+            pos.x + side * (CELL_SIZE * 0.32),
+            1.2,
+            pos.z + (Math.random() - 0.5) * 1.4
+          );
+          this.group.add(riser);
+
+          if (Math.random() < 0.5) {
+            const valve = new THREE.Mesh(valveGeo, valveMat);
+            valve.position.set(riser.position.x, 1.6, riser.position.z);
+            valve.rotation.x = Math.PI / 2;
+            this.group.add(valve);
+          }
+        }
+
+        if (Math.random() < 0.25) {
+          const steam = new THREE.Mesh(steamGeo, steamMat);
+          steam.position.set(
+            pos.x + (Math.random() - 0.5) * 1.5,
+            0.9 + Math.random() * 0.8,
+            pos.z + (Math.random() - 0.5) * 1.5
+          );
+          steam.scale.setScalar(0.7 + Math.random() * 0.8);
+          this.group.add(steam);
         }
       }
     }

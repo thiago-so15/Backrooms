@@ -35,6 +35,7 @@ export const PLAYER_CONFIG = {
       { batteryDrainMult: 1 },
       { batteryDrainMult: 0.35 },
       { batteryDrainMult: 0.28 },
+      { batteryDrainMult: 0.24 },
     ],
   },
 };

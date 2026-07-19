@@ -48,6 +48,13 @@ class CurrencyManager {
     return true;
   }
 
+  /** Set absolute coin balance (e.g. access-code reward). */
+  setBalance(amount) {
+    this._coins = Math.max(0, Math.floor(amount));
+    this._persist();
+    this._notify();
+  }
+
   /** Wipe coins for a fresh account. */
   reset() {
     this._coins = 0;

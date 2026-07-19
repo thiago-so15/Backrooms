@@ -32,6 +32,15 @@ export const AUDIO_CONFIG = {
       lfoFrequency: 0.22,
       lfoGain: 0.02,
     },
+    // Vapor / metal de Pipe Dreams
+    pipes: {
+      filterType: 'lowpass',
+      filterFrequency: 260,
+      filterQ: 0.8,
+      gain: 0.055,
+      lfoFrequency: 0.07,
+      lfoGain: 0.04,
+    },
     bufferSeconds: 3,
   },
   keyPickup: {
