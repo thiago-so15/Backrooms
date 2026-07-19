@@ -123,6 +123,8 @@ export class LightingManager {
       for (let z = spacing / 2; z < worldH; z += spacing) {
         if (cfg.style === 'streetlamp') {
           this._addStreetlamp(cfg, x, z, gridIndex, cellSize);
+        } else if (cfg.style === 'beacon') {
+          this._addBeaconLight(cfg, x, z, cellSize, gridIndex);
         } else {
           this._addCeilingLight(cfg, x, z, cellSize, gridIndex);
         }
@@ -131,6 +133,53 @@ export class LightingManager {
     }
 
     this.applyGraphicsQuality();
+  }
+
+  _addBeaconLight(cfg, x, z, cellSize, gridIndex) {
+    const light = new THREE.PointLight(cfg.color, cfg.intensity, cellSize * cfg.distanceMul);
+    light.position.set(x, cfg.height, z);
+
+    const group = new THREE.Group();
+    const cageMat = new THREE.MeshStandardMaterial({
+      color: 0x1a2822,
+      roughness: 0.45,
+      metalness: 0.8,
+    });
+    const cage = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.45, 8, 1, true), cageMat);
+    cage.position.set(x, cfg.height, z);
+    group.add(cage);
+
+    const bulbMat = new THREE.MeshStandardMaterial({
+      color: cfg.color,
+      emissive: cfg.color,
+      emissiveIntensity: 1.4,
+      roughness: 0.3,
+    });
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), bulbMat);
+    bulb.position.set(x, cfg.height - 0.05, z);
+    group.add(bulb);
+
+    const stem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.03, 0.5, 6),
+      cageMat
+    );
+    stem.position.set(x, cfg.height + 0.35, z);
+    group.add(stem);
+
+    this.scene.add(group);
+    this.scene.add(light);
+    this.lights.push({
+      light,
+      fixture: group,
+      emissiveMat: bulbMat,
+      baseIntensity: cfg.intensity,
+      baseEmissive: 1.4,
+      flickerChance: cfg.flickerChance,
+      flickerTimer: Math.random() * 5,
+      flickering: false,
+      flickerDuration: 0,
+      gridIndex,
+    });
   }
 
   _addCeilingLight(cfg, x, z, cellSize, gridIndex) {

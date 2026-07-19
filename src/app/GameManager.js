@@ -14,6 +14,7 @@ import { MazeBuilder } from '../graphics/maze/MazeBuilder.js';
 import { Player } from '../entities/player/Player.js';
 import { Entity } from '../entities/enemy/Entity.js';
 import { Smiler } from '../entities/enemy/Smiler.js';
+import { GuideChild } from '../entities/npc/GuideChild.js';
 import { Pickup } from '../entities/items/Pickup.js';
 import { CoinPickup } from '../entities/items/CoinPickup.js';
 import { currencyManager } from '../systems/economy/CurrencyManager.js';
@@ -41,6 +42,7 @@ export class GameManager {
     this.mazeBuilder = null;
     this.player = null;
     this.hostiles = [];
+    this.guideChild = null;
     this.pickup = null;
     this.coinPickup = null;
 
@@ -64,6 +66,7 @@ export class GameManager {
     this.mazeBuilder = new MazeBuilder(scene);
     this.player = new Player(camera, scene);
     this.hostiles = [];
+    this.guideChild = new GuideChild(scene);
     this.pickup = new Pickup(scene);
     this.coinPickup = new CoinPickup(scene);
     this._loop();
@@ -175,17 +178,30 @@ export class GameManager {
 
     const start = this.levelManager.getPlayerStart();
     this.player.reset(start.x, start.z);
-    this.pickup.spawn(mazeData, config.keyCount, start.x, start.z);
+
+    const guideMode = Boolean(config.guideChild);
+    if (guideMode) {
+      this.pickup.clear();
+      this.exitUnlocked = false;
+      this._spawnGuideChild(mazeData);
+    } else {
+      this.guideChild.dispose();
+      this.pickup.spawn(mazeData, config.keyCount, start.x, start.z);
+    }
+
     this.coinPickup.spawn(
       mazeData,
       config.coinCount ?? 5,
       start.x,
       start.z,
-      this.pickup.getOccupiedCells()
+      guideMode ? [] : this.pickup.getOccupiedCells()
     );
 
     this._applyShopModifiers();
     this._spawnHostiles(config, mazeData);
+
+    this.ui.hud.setGuideMode(guideMode);
+    this.ui.hud.setMinimapVisible(!config.hideMinimap);
 
     this._setState(GAME_STATE.INTRO);
     this.ui.screens.showIntro(
@@ -195,6 +211,22 @@ export class GameManager {
     );
     this.ui.hud.hide();
     this.ui.touchControls.hide();
+  }
+
+  _spawnGuideChild(mazeData) {
+    // Start one cell away from the player so you see them immediately
+    let sx = 1;
+    let sy = 0;
+    if (mazeData.width <= 1) sx = 0;
+    if (mazeData.height > 1 && Math.random() > 0.5) {
+      sx = 0;
+      sy = 1;
+    }
+    const goal = {
+      x: mazeData.width - 1,
+      y: mazeData.height - 1,
+    };
+    this.guideChild.spawn(mazeData, sx, sy, goal);
   }
 
   _spawnHostiles(config, mazeData) {
@@ -254,6 +286,7 @@ export class GameManager {
     this.pickup.clear();
     this.coinPickup.clear();
     this._clearHostiles();
+    this.guideChild?.dispose();
     this.exitUnlocked = false;
   }
 
@@ -314,6 +347,7 @@ export class GameManager {
 
     let closestDist = Infinity;
     for (const enemy of this.hostiles) {
+      // Hostiles only chase/hurt the player — never the child guide
       const result = enemy.update(dt, playerPos);
       closestDist = Math.min(closestDist, result.distance);
       if (result.caught && !this.survival.isInvulnerable) {
@@ -337,9 +371,31 @@ export class GameManager {
       return;
     }
 
-    const newKey = this.pickup.update(dt, playerPos);
-    if (newKey !== null) {
-      this.audio.playKeyPickup();
+    const config = this.levelManager.getLevelConfig();
+    const guideMode = Boolean(config.guideChild);
+
+    if (guideMode && this.guideChild.active) {
+      const guide = this.guideChild.update(dt, playerPos);
+      if (guide.message) {
+        this.ui.hud.showMessage(guide.message, 3.5);
+      }
+      if (guide.arrivedAtExit && !this.exitUnlocked) {
+        this.exitUnlocked = true;
+        this.mazeBuilder.unlockExit();
+        eventBus.emit(GAME_EVENTS.EXIT_UNLOCKED, {});
+      }
+    } else {
+      const newKey = this.pickup.update(dt, playerPos);
+      if (newKey !== null) {
+        this.audio.playKeyPickup();
+      }
+
+      if (!this.exitUnlocked && this.pickup.allCollected()) {
+        this.exitUnlocked = true;
+        this.mazeBuilder.unlockExit();
+        this.ui.hud.showMessage('Salida desbloqueada');
+        eventBus.emit(GAME_EVENTS.EXIT_UNLOCKED, {});
+      }
     }
 
     const coinsCollected = this.coinPickup.update(dt, playerPos);
@@ -349,24 +405,16 @@ export class GameManager {
       this.ui.hud.showMessage(`+${coinsCollected} moneda${coinsCollected > 1 ? 's' : ''}`);
     }
 
-    if (!this.exitUnlocked && this.pickup.allCollected()) {
-      this.exitUnlocked = true;
-      this.mazeBuilder.unlockExit();
-      this.ui.hud.showMessage('Salida desbloqueada');
-      eventBus.emit(GAME_EVENTS.EXIT_UNLOCKED, {});
-    }
-
     if (this.exitUnlocked && this.mazeBuilder.checkExitCollision(playerPos)) {
       this._levelComplete();
       return;
     }
 
-    const config = this.levelManager.getLevelConfig();
     const exitDoor = this.mazeBuilder.exitDoor;
     this.ui.hud.update({
       levelName: config.name,
-      keysCollected: this.pickup.collected,
-      keysTotal: config.keyCount,
+      keysCollected: guideMode ? 0 : this.pickup.collected,
+      keysTotal: guideMode ? 0 : config.keyCount,
       coins: currencyManager.getBalance(),
       health: this.survival.health,
       battery: survivalState.battery,
@@ -376,7 +424,7 @@ export class GameManager {
       exitUnlocked: this.exitUnlocked,
       playerPos,
       playerYaw: this.camera.rotation.y,
-      keys: this.pickup.keys,
+      keys: guideMode ? [] : this.pickup.keys,
       exit: exitDoor ? exitDoor.position : null,
       entities: this.hostiles
         .filter((e) => e.active)
@@ -386,6 +434,9 @@ export class GameManager {
           active: true,
           type: e.hostileType || 'entity',
         })),
+      guideMode,
+      guideWaiting: this.guideChild?.waiting ?? false,
+      hideMinimap: Boolean(config.hideMinimap),
       dt,
     });
 
@@ -407,6 +458,7 @@ export class GameManager {
     if (this.rafId) cancelAnimationFrame(this.rafId);
     this._cleanupLevel();
     this.mazeBuilder.dispose();
+    this.guideChild?.dispose();
     this.pickup.dispose();
     this.coinPickup.dispose();
     this.audio.dispose();

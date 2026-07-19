@@ -49,14 +49,17 @@ export const LEVELS = [
     name: 'NIVEL 2',
     subtitle: 'Pipe Dreams',
     description:
-      'El ascensor se abrió a un laberinto de mantenimiento: cañerías oxidadas, vapor que quema la garganta y luces de emergencia que parpadean en naranja. El metal gotea. Algo se arrastra entre los ductos. Juntá las llaves y encontrá la compuerta de salida antes de que el vapor te ciegue.',
+      'Caíste a una sala de máquinas inundada. Entre el vapor aparece un niño. Te mira y te dice que lo sigas: él sabe dónde está la salida. No hay llaves acá. Las cosas del laberinto todavía te cazan a vos — a él no pueden tocarlo. Seguilo.',
     mazeSize: 26,
-    keyCount: 9,
-    coinCount: 22,
+    keyCount: 0,
+    coinCount: 18,
     hostiles: [
       { type: 'entity', count: 5 },
       { type: 'smiler', count: 4 },
     ],
+    /** Follow the child to the exit instead of collecting keys. */
+    guideChild: true,
+    hideMinimap: true,
     theme: THEMES.pipes,
   },
 ];

@@ -242,6 +242,111 @@ function createCarpetTexture({ base, pattern }) {
   return toTexture(canvas);
 }
 
+/** Placas de metal remachadas (Pipe Dreams). */
+function createMetalTexture({ base, rivet, tint }) {
+  const w = 256;
+  const h = 256;
+  const { canvas, ctx } = makeCanvas(w, h);
+  ctx.fillStyle = base || '#243830';
+  ctx.fillRect(0, 0, w, h);
+  addNoise(ctx, w, h, 30);
+
+  const cols = 3;
+  const rows = 3;
+  const pw = w / cols;
+  const ph = h / rows;
+  ctx.strokeStyle = rivet || '#0e1614';
+  ctx.lineWidth = 5;
+  for (let r = 0; r <= rows; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * ph);
+    ctx.lineTo(w, r * ph);
+    ctx.stroke();
+  }
+  for (let c = 0; c <= cols; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * pw, 0);
+    ctx.lineTo(c * pw, h);
+    ctx.stroke();
+  }
+
+  // Remaches
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      for (const [ox, oy] of [
+        [10, 10],
+        [pw - 10, 10],
+        [10, ph - 10],
+        [pw - 10, ph - 10],
+      ]) {
+        const x = c * pw + ox;
+        const y = r * ph + oy;
+        ctx.fillStyle = '#4a6a5a';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0a1210';
+        ctx.beginPath();
+        ctx.arc(x - 1, y - 1, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Mancha de óxido / verdín
+      if (Math.random() > 0.45) {
+        const gx = c * pw + pw * 0.3;
+        const gy = r * ph + ph * 0.35;
+        const grad = ctx.createRadialGradient(gx, gy, 0, gx, gy, 28);
+        grad.addColorStop(0, 'rgba(40,120,70,0.35)');
+        grad.addColorStop(1, 'rgba(40,120,70,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(c * pw, r * ph, pw, ph);
+      }
+    }
+  }
+
+  addGrime(ctx, w, h, 45, 0.2);
+  if (tint) tintOverlay(ctx, w, h, tint, 0.12);
+  return toTexture(canvas);
+}
+
+/** Rejilla metálica sobre agua tóxica. */
+function createGrateTexture({ base, bar, glow }) {
+  const w = 256;
+  const h = 256;
+  const { canvas, ctx } = makeCanvas(w, h);
+  ctx.fillStyle = glow || '#1a6a48';
+  ctx.fillRect(0, 0, w, h);
+  addNoise(ctx, w, h, 20);
+
+  // Brillo tóxico debajo
+  for (let i = 0; i < 12; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, 40);
+    grad.addColorStop(0, 'rgba(80,255,160,0.35)');
+    grad.addColorStop(1, 'rgba(80,255,160,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - 40, y - 40, 80, 80);
+  }
+
+  ctx.fillStyle = base || '#0c1412';
+  const gap = 18;
+  const thick = 6;
+  for (let x = 0; x < w; x += gap) {
+    ctx.fillRect(x, 0, thick, h);
+  }
+  for (let y = 0; y < h; y += gap) {
+    ctx.fillRect(0, y, w, thick);
+  }
+
+  ctx.strokeStyle = bar || '#1e3830';
+  ctx.lineWidth = 2;
+  for (let x = 0; x < w; x += gap) {
+    ctx.strokeRect(x, 0, thick, h);
+  }
+  addGrime(ctx, w, h, 25, 0.15);
+  return toTexture(canvas);
+}
+
 function createNightTexture({ base }) {
   const w = 128;
   const h = 128;
@@ -285,13 +390,18 @@ export class MazeBuilder {
 
     const wallMat = new THREE.MeshStandardMaterial({
       map: wallTex,
-      roughness: 0.9,
-      metalness: 0.0,
+      roughness: theme.wall.type === 'metal' ? 0.45 : 0.9,
+      metalness: theme.wall.type === 'metal' ? 0.75 : 0.0,
     });
     const floorMat = new THREE.MeshStandardMaterial({
       map: floorTex,
-      roughness: 0.95,
-      metalness: theme.floor.type === 'checker' ? 0.15 : 0.0,
+      roughness: theme.floor.type === 'grate' ? 0.55 : 0.95,
+      metalness:
+        theme.floor.type === 'checker'
+          ? 0.15
+          : theme.floor.type === 'grate'
+            ? 0.7
+            : 0.0,
     });
 
     const floor = new THREE.Mesh(new THREE.PlaneGeometry(worldW, worldH), floorMat);
@@ -301,16 +411,16 @@ export class MazeBuilder {
     this.group.add(floor);
 
     if (theme.ceiling && theme.ceiling.enabled) {
-      const ceilTex =
-        theme.ceiling.type === 'tile'
-          ? createTileTexture(theme.ceiling)
-          : createNightTexture(theme.ceiling);
+      let ceilTex;
+      if (theme.ceiling.type === 'tile') ceilTex = createTileTexture(theme.ceiling);
+      else if (theme.ceiling.type === 'metal') ceilTex = createMetalTexture(theme.ceiling);
+      else ceilTex = createNightTexture(theme.ceiling);
       ceilTex.repeat.set(width, height);
       this.textures.push(ceilTex);
       const ceilMat = new THREE.MeshStandardMaterial({
         map: ceilTex,
-        roughness: 0.9,
-        metalness: 0.0,
+        roughness: theme.ceiling.type === 'metal' ? 0.5 : 0.9,
+        metalness: theme.ceiling.type === 'metal' ? 0.7 : 0.0,
         side: THREE.BackSide,
       });
       const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(worldW, worldH), ceilMat);
@@ -366,6 +476,7 @@ export class MazeBuilder {
   _makeWallTexture(cfg) {
     if (cfg.type === 'facade') return createFacadeTexture(cfg);
     if (cfg.type === 'wallpaper') return createWallpaperTexture(cfg);
+    if (cfg.type === 'metal') return createMetalTexture(cfg);
     return createTileTexture(cfg);
   }
 
@@ -373,6 +484,7 @@ export class MazeBuilder {
     if (cfg.type === 'checker') return createCheckerTexture(cfg);
     if (cfg.type === 'asphalt') return createAsphaltTexture(cfg);
     if (cfg.type === 'carpet') return createCarpetTexture(cfg);
+    if (cfg.type === 'grate') return createGrateTexture(cfg);
     return createTileTexture(cfg);
   }
 
@@ -535,37 +647,50 @@ export class MazeBuilder {
 
   _buildPipeProps(mazeData) {
     const { width, height } = mazeData;
-    const density = Math.min(0.2, 3.2 / Math.max(width, height));
+    const density = Math.min(0.28, 4.5 / Math.max(width, height));
+
+    const steelMat = new THREE.MeshStandardMaterial({
+      color: 0x2a4038,
+      roughness: 0.4,
+      metalness: 0.85,
+    });
     const rustMat = new THREE.MeshStandardMaterial({
-      color: 0x5a3a28,
-      roughness: 0.85,
+      color: 0x4a3020,
+      roughness: 0.7,
       metalness: 0.55,
     });
-    const darkMat = new THREE.MeshStandardMaterial({
-      color: 0x2a2420,
-      roughness: 0.7,
-      metalness: 0.7,
-    });
-    const valveMat = new THREE.MeshStandardMaterial({
-      color: 0x8a2a1a,
-      roughness: 0.55,
-      metalness: 0.4,
-      emissive: 0x3a1008,
-      emissiveIntensity: 0.15,
+    const toxicMat = new THREE.MeshStandardMaterial({
+      color: 0x1a8a55,
+      emissive: 0x3dff9a,
+      emissiveIntensity: 0.55,
+      roughness: 0.2,
+      metalness: 0.3,
+      transparent: true,
+      opacity: 0.72,
     });
     const steamMat = new THREE.MeshStandardMaterial({
-      color: 0xc8c0b0,
+      color: 0xa8ffe0,
+      emissive: 0x2a6a4a,
+      emissiveIntensity: 0.25,
       transparent: true,
-      opacity: 0.22,
+      opacity: 0.28,
       roughness: 1,
       depthWrite: false,
     });
+    const stripeMat = new THREE.MeshStandardMaterial({
+      color: 0xc9a020,
+      emissive: 0x6a5010,
+      emissiveIntensity: 0.2,
+      roughness: 0.6,
+    });
 
-    const longPipeGeo = new THREE.CylinderGeometry(0.12, 0.12, CELL_SIZE * 0.7, 8);
-    const vertPipeGeo = new THREE.CylinderGeometry(0.16, 0.18, 2.4, 8);
-    const elbowGeo = new THREE.TorusGeometry(0.28, 0.1, 6, 10, Math.PI / 2);
-    const valveGeo = new THREE.TorusGeometry(0.22, 0.05, 6, 12);
-    const steamGeo = new THREE.SphereGeometry(0.35, 8, 8);
+    const longPipeGeo = new THREE.CylinderGeometry(0.14, 0.14, CELL_SIZE * 0.85, 8);
+    const fatPipeGeo = new THREE.CylinderGeometry(0.28, 0.32, 2.6, 10);
+    const tankGeo = new THREE.CylinderGeometry(0.55, 0.55, 1.4, 12);
+    const puddleGeo = new THREE.CircleGeometry(0.7, 14);
+    const steamGeo = new THREE.SphereGeometry(0.4, 8, 8);
+    const stripeGeo = new THREE.BoxGeometry(1.2, 0.08, 0.18);
+    const cageGeo = new THREE.TorusGeometry(0.55, 0.05, 6, 16);
 
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
@@ -573,44 +698,63 @@ export class MazeBuilder {
         if (Math.random() > density) continue;
         const pos = MazeGenerator.cellToWorld(x, y, CELL_SIZE);
         const side = Math.random() > 0.5 ? 1 : -1;
+        const roll = Math.random();
 
-        if (Math.random() < 0.55) {
-          const pipe = new THREE.Mesh(longPipeGeo, Math.random() > 0.4 ? rustMat : darkMat);
+        if (roll < 0.35) {
+          // Tendido de caños en el techo
+          const pipe = new THREE.Mesh(longPipeGeo, Math.random() > 0.5 ? steelMat : rustMat);
           pipe.rotation.z = Math.PI / 2;
-          pipe.position.set(pos.x, 2.35 + Math.random() * 0.15, pos.z + side * 0.9);
+          if (Math.random() > 0.5) pipe.rotation.y = Math.PI / 2;
+          pipe.position.set(pos.x, 2.55 + Math.random() * 0.2, pos.z);
           this.group.add(pipe);
 
-          if (Math.random() < 0.45) {
-            const elbow = new THREE.Mesh(elbowGeo, rustMat);
-            elbow.position.set(pipe.position.x + 0.9, pipe.position.y, pipe.position.z);
-            elbow.rotation.y = side > 0 ? 0 : Math.PI;
-            this.group.add(elbow);
-          }
-        } else {
-          const riser = new THREE.Mesh(vertPipeGeo, darkMat);
+          const cage = new THREE.Mesh(cageGeo, steelMat);
+          cage.rotation.x = Math.PI / 2;
+          cage.position.copy(pipe.position);
+          cage.position.y -= 0.15;
+          this.group.add(cage);
+        } else if (roll < 0.6) {
+          // Columna / ducto vertical
+          const riser = new THREE.Mesh(fatPipeGeo, steelMat);
           riser.position.set(
-            pos.x + side * (CELL_SIZE * 0.32),
-            1.2,
-            pos.z + (Math.random() - 0.5) * 1.4
+            pos.x + side * (CELL_SIZE * 0.34),
+            1.3,
+            pos.z + (Math.random() - 0.5)
           );
           this.group.add(riser);
-
-          if (Math.random() < 0.5) {
-            const valve = new THREE.Mesh(valveGeo, valveMat);
-            valve.position.set(riser.position.x, 1.6, riser.position.z);
-            valve.rotation.x = Math.PI / 2;
-            this.group.add(valve);
-          }
+        } else if (roll < 0.78) {
+          // Tanque
+          const tank = new THREE.Mesh(tankGeo, rustMat);
+          tank.position.set(
+            pos.x + side * 0.9,
+            0.7,
+            pos.z + (Math.random() - 0.5) * 1.2
+          );
+          this.group.add(tank);
+          const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+          stripe.position.set(tank.position.x, 1.15, tank.position.z);
+          this.group.add(stripe);
+        } else {
+          // Charco tóxico
+          const puddle = new THREE.Mesh(puddleGeo, toxicMat);
+          puddle.rotation.x = -Math.PI / 2;
+          puddle.position.set(
+            pos.x + (Math.random() - 0.5) * 1.4,
+            0.03,
+            pos.z + (Math.random() - 0.5) * 1.4
+          );
+          puddle.scale.setScalar(0.7 + Math.random() * 0.9);
+          this.group.add(puddle);
         }
 
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.35) {
           const steam = new THREE.Mesh(steamGeo, steamMat);
           steam.position.set(
-            pos.x + (Math.random() - 0.5) * 1.5,
-            0.9 + Math.random() * 0.8,
-            pos.z + (Math.random() - 0.5) * 1.5
+            pos.x + (Math.random() - 0.5) * 1.6,
+            1.0 + Math.random() * 1.1,
+            pos.z + (Math.random() - 0.5) * 1.6
           );
-          steam.scale.setScalar(0.7 + Math.random() * 0.8);
+          steam.scale.setScalar(0.8 + Math.random());
           this.group.add(steam);
         }
       }
@@ -648,6 +792,46 @@ export class MazeBuilder {
       );
       doorMesh.position.set(0, 1.4, 0.02);
       group.add(doorMesh);
+    } else if (theme.exit.style === 'hatch') {
+      // Escotilla de presión industrial
+      const frame = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.15, 1.15, 0.35, 20),
+        new THREE.MeshStandardMaterial({ color: 0x1a2822, roughness: 0.45, metalness: 0.8 })
+      );
+      frame.rotation.x = Math.PI / 2;
+      frame.position.set(0, 1.35, 0);
+      group.add(frame);
+
+      doorMesh = new THREE.Mesh(
+        new THREE.CircleGeometry(0.95, 24),
+        new THREE.MeshStandardMaterial({
+          color: theme.exit.locked,
+          emissive: theme.exit.locked,
+          emissiveIntensity: 0.45,
+          roughness: 0.4,
+          metalness: 0.65,
+        })
+      );
+      doorMesh.position.set(0, 1.35, 0.05);
+      group.add(doorMesh);
+
+      const wheel = new THREE.Mesh(
+        new THREE.TorusGeometry(0.35, 0.06, 8, 16),
+        new THREE.MeshStandardMaterial({
+          color: 0x3a4a40,
+          roughness: 0.4,
+          metalness: 0.85,
+        })
+      );
+      wheel.position.set(0, 1.35, 0.12);
+      group.add(wheel);
+
+      const spoke = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.06, 0.06),
+        new THREE.MeshStandardMaterial({ color: 0x2a3830, metalness: 0.8, roughness: 0.4 })
+      );
+      spoke.position.copy(wheel.position);
+      group.add(spoke);
     } else {
       // puerta / parada de casa
       const frame = new THREE.Mesh(

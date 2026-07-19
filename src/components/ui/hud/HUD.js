@@ -13,6 +13,8 @@ export class HUD {
     this.messageText = '';
     this.vignetteIntensity = 0;
     this.minimap = null;
+    this._guideMode = false;
+    this._minimapVisible = true;
     this._build();
   }
 
@@ -60,11 +62,22 @@ export class HUD {
     this.messageEl = this.container.querySelector('#hud-message');
     this.vignetteEl = this.container.querySelector('#vignette');
     this.flashEl = this.container.querySelector('#flash-overlay');
+    this.minimapWrap = this.container.querySelector('.hud-minimap-wrap');
     this.minimap = new Minimap(this.container.querySelector('#hud-minimap'));
   }
 
   setMaze(mazeData) {
     this.minimap?.setMaze(mazeData);
+  }
+
+  setGuideMode(enabled) {
+    this._guideMode = Boolean(enabled);
+    this.keysEl.classList.toggle('hidden', this._guideMode);
+  }
+
+  setMinimapVisible(visible) {
+    this._minimapVisible = Boolean(visible);
+    this.minimapWrap?.classList.toggle('hidden', !this._minimapVisible);
   }
 
   show() {
@@ -93,27 +106,48 @@ export class HUD {
       exit,
       entity,
       entities,
+      guideMode,
+      guideWaiting,
+      hideMinimap,
     } = state;
 
+    if (guideMode !== undefined) this.setGuideMode(guideMode);
+    if (hideMinimap !== undefined) this.setMinimapVisible(!hideMinimap);
+
     this.levelEl.textContent = levelName;
-    this.keysEl.textContent = `Llaves: ${keysCollected} / ${keysTotal}`;
+    if (!this._guideMode) {
+      this.keysEl.textContent = `Llaves: ${keysCollected} / ${keysTotal}`;
+    }
     this.coinsEl.textContent = `Monedas: ${coins ?? 0}`;
-    this.objectiveEl.textContent = exitUnlocked
-      ? 'Dirígete a la salida'
-      : 'Encuentra las llaves';
+
+    if (this._guideMode) {
+      if (exitUnlocked) {
+        this.objectiveEl.textContent = 'La salida está abierta — entrá';
+      } else if (guideWaiting) {
+        this.objectiveEl.textContent = 'El niño te espera — alcanzalo';
+      } else {
+        this.objectiveEl.textContent = 'Seguí al niño hasta la salida';
+      }
+    } else {
+      this.objectiveEl.textContent = exitUnlocked
+        ? 'Dirígete a la salida'
+        : 'Encuentra las llaves';
+    }
 
     this._setBar(this.healthBar, health, maxHealth ?? PLAYER_CONFIG.survival.maxStat);
     this._setBar(this.batteryBar, battery, maxBattery ?? PLAYER_CONFIG.survival.maxStat);
 
-    this.minimap?.update({
-      playerPos,
-      playerYaw,
-      keys,
-      exit,
-      exitUnlocked,
-      entity,
-      entities,
-    });
+    if (this._minimapVisible) {
+      this.minimap?.update({
+        playerPos,
+        playerYaw,
+        keys,
+        exit,
+        exitUnlocked,
+        entity,
+        entities,
+      });
+    }
 
     const hudCfg = UI_CONFIG.hud;
     const entityRadius = hudCfg.entityProximityRadius;

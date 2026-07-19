@@ -32,14 +32,14 @@ export const AUDIO_CONFIG = {
       lfoFrequency: 0.22,
       lfoGain: 0.02,
     },
-    // Vapor / metal de Pipe Dreams
+    // Vapor / metal / agua tóxica de Pipe Dreams
     pipes: {
-      filterType: 'lowpass',
-      filterFrequency: 260,
-      filterQ: 0.8,
-      gain: 0.055,
-      lfoFrequency: 0.07,
-      lfoGain: 0.04,
+      filterType: 'bandpass',
+      filterFrequency: 140,
+      filterQ: 0.9,
+      gain: 0.06,
+      lfoFrequency: 0.05,
+      lfoGain: 0.045,
     },
     bufferSeconds: 3,
   },
