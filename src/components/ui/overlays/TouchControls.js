@@ -21,6 +21,7 @@ export class TouchControls {
       <div class="touch-look-zone" aria-label="Arrastrá para mirar">
         <span class="touch-look-hint">Arrastrá para mirar</span>
       </div>
+      <button type="button" class="touch-body-view-btn" aria-label="Ver u ocultar personaje">Ver</button>
       <div class="touch-dpad" aria-label="Controles de movimiento">
         <button type="button" class="touch-btn touch-btn--up" data-dir="up" aria-label="Arriba">&#9650;</button>
         <button type="button" class="touch-btn touch-btn--left" data-dir="left" aria-label="Izquierda">&#9664;</button>
@@ -31,9 +32,15 @@ export class TouchControls {
 
     this.container.appendChild(el);
     this.element = el;
+    this.onBodyViewToggle = null;
 
     this._bindDpad(el);
     this._bindLookZone(el.querySelector('.touch-look-zone'));
+    el.querySelector('.touch-body-view-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.onBodyViewToggle?.();
+    });
   }
 
   _bindDpad(el) {

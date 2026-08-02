@@ -21,6 +21,8 @@ export class CoinPickup {
     this.total = count;
     if (count <= 0) return;
 
+    const occupied =
+      occupiedCells instanceof Set ? occupiedCells : new Set(occupiedCells || []);
     const { width, height } = mazeData;
     const pickupCfg = GAME_CONFIG.pickup;
     const candidates = [];
@@ -28,7 +30,7 @@ export class CoinPickup {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const cellKey = `${x},${y}`;
-        if (occupiedCells.has(cellKey)) continue;
+        if (occupied.has(cellKey)) continue;
         const pos = MazeGenerator.cellToWorld(x, y, CELL_SIZE);
         const dist = Math.sqrt((pos.x - startX) ** 2 + (pos.z - startZ) ** 2);
         if (dist > CELL_SIZE * pickupCfg.minSpawnDistanceCells) {
@@ -39,7 +41,7 @@ export class CoinPickup {
 
     candidates.sort((a, b) => b.dist - a.dist);
 
-    const placed = new Set(occupiedCells);
+    const placed = new Set(occupied);
     let placedCount = 0;
 
     for (const c of candidates) {

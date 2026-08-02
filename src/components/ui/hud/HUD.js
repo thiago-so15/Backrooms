@@ -46,6 +46,7 @@ export class HUD {
           </div>
         </div>
         <div id="crosshair">+</div>
+        <button type="button" id="hud-body-view" class="hud-body-view-btn" aria-pressed="false" title="Ver / ocultar personaje (V)">Ver</button>
         <div id="hud-message"></div>
         <div id="vignette"></div>
         <div id="flash-overlay"></div>
@@ -63,7 +64,28 @@ export class HUD {
     this.vignetteEl = this.container.querySelector('#vignette');
     this.flashEl = this.container.querySelector('#flash-overlay');
     this.minimapWrap = this.container.querySelector('.hud-minimap-wrap');
+    this.bodyViewBtn = this.container.querySelector('#hud-body-view');
     this.minimap = new Minimap(this.container.querySelector('#hud-minimap'));
+
+    this.onBodyViewToggle = null;
+    this.bodyViewBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.onBodyViewToggle?.();
+    });
+  }
+
+  setBodyViewActive(active) {
+    const on = Boolean(active);
+    this.bodyViewBtn?.classList.toggle('hud-body-view-btn--active', on);
+    this.bodyViewBtn?.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (this.bodyViewBtn) {
+      this.bodyViewBtn.textContent = on ? 'Ocultar' : 'Ver';
+    }
+  }
+
+  setBodyViewButtonVisible(visible) {
+    this.bodyViewBtn?.classList.toggle('hidden', !visible);
   }
 
   setMaze(mazeData) {
@@ -213,5 +235,6 @@ export class HUD {
     this.vignetteIntensity = 0;
     this.vignetteEl.style.opacity = '0';
     this.flashEl.style.opacity = '0';
+    this.setBodyViewActive(false);
   }
 }

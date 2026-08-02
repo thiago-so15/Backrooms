@@ -65,10 +65,13 @@ export class GameManager {
     this.camera = camera;
     this.mazeBuilder = new MazeBuilder(scene);
     this.player = new Player(camera, scene);
+    this.player.applySkin(shopManager.getEquippedSkinColors());
     this.hostiles = [];
     this.guideChild = new GuideChild(scene);
     this.pickup = new Pickup(scene);
     this.coinPickup = new CoinPickup(scene);
+    this.ui.hud.onBodyViewToggle = () => this.input.requestBodyViewToggle();
+    this.ui.touchControls.onBodyViewToggle = () => this.input.requestBodyViewToggle();
     this._loop();
   }
 
@@ -80,6 +83,9 @@ export class GameManager {
   _bindEvents() {
     eventBus.on(GAME_EVENTS.OBJECT_PICKED, ({ index, total }) => {
       this.ui.hud.showMessage(`Llave ${index} / ${total}`);
+    });
+    eventBus.on(GAME_EVENTS.SHOP_SKIN_EQUIPPED, () => {
+      this.player?.applySkin(shopManager.getEquippedSkinColors());
     });
   }
 
@@ -194,7 +200,7 @@ export class GameManager {
       config.coinCount ?? 5,
       start.x,
       start.z,
-      guideMode ? [] : this.pickup.getOccupiedCells()
+      guideMode ? new Set() : this.pickup.getOccupiedCells()
     );
 
     this._applyShopModifiers();
@@ -251,13 +257,16 @@ export class GameManager {
   _applyShopModifiers() {
     const mods = shopManager.getModifiers();
     this.player.speedMultiplier = mods.speedMult;
+    this.player.applySkin(shopManager.getEquippedSkinColors());
   }
 
   _showPlayControls() {
     if (this.input.isMobile) {
       this.ui.touchControls.show();
+      this.ui.hud.setBodyViewButtonVisible(false);
     } else {
       this.input.requestPointerLock();
+      this.ui.hud.setBodyViewButtonVisible(true);
     }
   }
 
@@ -330,6 +339,17 @@ export class GameManager {
 
     if (this.input.isFlashlightToggle()) {
       this.player.toggleFlashlight(this.survival.battery);
+    }
+
+    if (this.input.consumeBodyViewToggle()) {
+      const visible = this.player.toggleBodyVisible();
+      this.ui.hud.setBodyViewActive(visible);
+      const touchBtn = this.ui.touchControls.element?.querySelector('.touch-body-view-btn');
+      if (touchBtn) {
+        touchBtn.textContent = visible ? 'Ocultar' : 'Ver';
+        touchBtn.classList.toggle('touch-body-view-btn--active', visible);
+      }
+      this.ui.hud.showMessage(visible ? 'Ves a tu personaje' : 'Vista en primera persona');
     }
 
     const playerPos = this.player.update(this.input, dt, this.mazeBuilder.wallBoxes);

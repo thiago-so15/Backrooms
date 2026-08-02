@@ -8,6 +8,7 @@ export const GAME_EVENTS = {
   OBJECT_PICKED: 'object:picked',
   COIN_COLLECTED: 'coin:collected',
   SHOP_PURCHASE: 'shop:purchase',
+  SHOP_SKIN_EQUIPPED: 'shop:skinEquipped',
   OBJECT_DROPPED: 'object:dropped',
   BATTERY_LOW: 'battery:low',
   PLAYER_DAMAGE: 'player:damage',

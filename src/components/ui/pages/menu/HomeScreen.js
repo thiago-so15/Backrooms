@@ -96,9 +96,10 @@ export class HomeScreen {
             <div class="howto-row"><dt>Mouse</dt><dd>Mirar alrededor</dd></div>
             <div class="howto-row"><dt>Shift</dt><dd>Correr</dd></div>
             <div class="howto-row"><dt>F</dt><dd>Encender / apagar la linterna</dd></div>
+            <div class="howto-row"><dt>V</dt><dd>Ver / ocultar tu personaje</dd></div>
             <div class="howto-row"><dt>Esc</dt><dd>Pausar</dd></div>
           </dl>
-          <p class="howto-objective">Encontrá todas las llaves de cada nivel y llegá a la salida. Juntá monedas en el mapa y gastalas en la Tienda para mejorar tu linterna y más. Cuidá tu vida y la batería: las entidades te muerden y te bajan la vida. Completá un nivel para desbloquear el siguiente.</p>
+          <p class="howto-objective">Encontrá todas las llaves de cada nivel y llegá a la salida. Juntá monedas en el mapa y gastalas en la Tienda para mejoras y skins del personaje (se ven con V). Cuidá tu vida y la batería: las entidades te muerden y te bajan la vida. Completá un nivel para desbloquear el siguiente.</p>
         </div>
       </div>
     `;

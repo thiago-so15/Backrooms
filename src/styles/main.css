@@ -274,6 +274,40 @@ html, body {
   pointer-events: none;
 }
 
+.hud-body-view-btn {
+  position: absolute;
+  bottom: max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
+  right: max(1rem, calc(env(safe-area-inset-right, 0px) + 0.5rem));
+  z-index: 5;
+  pointer-events: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.12rem;
+  text-transform: uppercase;
+  min-width: 4.5rem;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.85rem;
+  background: rgba(10, 9, 4, 0.8);
+  border: 1px solid rgba(138, 131, 84, 0.55);
+  color: #8a8354;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.hud-body-view-btn:hover,
+.hud-body-view-btn:focus-visible {
+  color: #c9c17a;
+  border-color: #c9c17a;
+  outline: none;
+}
+
+.hud-body-view-btn--active {
+  color: #050400;
+  background: #c9c17a;
+  border-color: #c9c17a;
+}
+
 #hud-message {
   position: absolute;
   bottom: 15%;
@@ -1126,6 +1160,32 @@ html.reduce-motion .home-screen.home-exiting {
   gap: 0.35rem;
 }
 
+.touch-body-view-btn {
+  position: absolute;
+  bottom: max(1.25rem, calc(env(safe-area-inset-bottom, 0px) + 0.75rem));
+  right: max(1rem, calc(env(safe-area-inset-right, 0px) + 0.5rem));
+  pointer-events: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1rem;
+  text-transform: uppercase;
+  min-width: 3.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.7rem;
+  background: rgba(10, 9, 4, 0.8);
+  border: 1px solid rgba(138, 131, 84, 0.55);
+  color: #8a8354;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  z-index: 2;
+}
+
+.touch-body-view-btn--active {
+  color: #050400;
+  background: #c9c17a;
+  border-color: #c9c17a;
+}
+
 .touch-btn {
   font-family: 'Courier New', Courier, monospace;
   font-size: 1.1rem;
@@ -1374,6 +1434,19 @@ html.reduce-motion .home-screen.home-exiting {
   margin-bottom: 1rem;
 }
 
+.shop-section-title {
+  font-size: 0.75rem;
+  font-weight: normal;
+  letter-spacing: 0.14rem;
+  text-transform: uppercase;
+  color: #8a8354;
+  margin: 0.35rem 0 0.15rem;
+}
+
+.shop-section-title:first-child {
+  margin-top: 0;
+}
+
 .shop-item {
   display: flex;
   flex-direction: column;
@@ -1388,12 +1461,38 @@ html.reduce-motion .home-screen.home-exiting {
   border-color: rgba(201, 193, 122, 0.35);
 }
 
+.shop-item--skin.shop-item--owned {
+  opacity: 1;
+}
+
+.shop-item--equipped {
+  border-color: rgba(232, 200, 74, 0.55);
+  background: rgba(40, 34, 12, 0.55);
+}
+
 .shop-item-name {
   font-size: 0.85rem;
   font-weight: normal;
   letter-spacing: 0.08rem;
   color: #c9c17a;
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.shop-skin-swatches {
+  display: inline-flex;
+  gap: 0.2rem;
+  vertical-align: middle;
+}
+
+.shop-skin-swatch {
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 1px solid rgba(201, 193, 122, 0.45);
+  flex-shrink: 0;
 }
 
 .shop-item-desc {
@@ -1442,9 +1541,15 @@ html.reduce-motion .home-screen.home-exiting {
 }
 
 .shop-buy-btn--owned,
-.shop-buy-btn--locked {
+.shop-buy-btn--locked,
+.shop-buy-btn--equipped {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.shop-buy-btn--equip {
+  border-color: #e8c84a;
+  color: #e8c84a;
 }
 
 .shop-buy-btn--expensive:not(:disabled) {

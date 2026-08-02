@@ -7,5 +7,7 @@ export const CONTROLS_CONFIG = {
   movementKeys: ['KeyW', 'KeyA', 'KeyS', 'KeyD'],
   sprintKeys: ['ShiftLeft', 'ShiftRight'],
   flashlightKey: 'KeyF',
+  /** Toggle seeing your character (third person). */
+  bodyViewKey: 'KeyV',
   pauseKey: 'Escape',
 };

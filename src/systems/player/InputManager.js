@@ -14,6 +14,7 @@ export class InputManager {
     this.isPointerLocked = false;
     this.onPointerLockChange = null;
     this.onEscape = null;
+    this._bodyViewRequested = false;
 
     this._bindEvents();
   }
@@ -104,6 +105,27 @@ export class InputManager {
   isFlashlightToggle() {
     if (this.keys[CONTROLS_CONFIG.flashlightKey]) {
       this.keys[CONTROLS_CONFIG.flashlightKey] = false;
+      return true;
+    }
+    return false;
+  }
+
+  isBodyViewToggle() {
+    if (this.keys[CONTROLS_CONFIG.bodyViewKey]) {
+      this.keys[CONTROLS_CONFIG.bodyViewKey] = false;
+      return true;
+    }
+    return false;
+  }
+
+  /** Programmatic toggle request (HUD / touch button). */
+  requestBodyViewToggle() {
+    this._bodyViewRequested = true;
+  }
+
+  consumeBodyViewToggle() {
+    if (this._bodyViewRequested || this.isBodyViewToggle()) {
+      this._bodyViewRequested = false;
       return true;
     }
     return false;
